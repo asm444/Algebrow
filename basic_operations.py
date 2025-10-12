@@ -1,0 +1,212 @@
+############# Variáveis
+primos = '.\\data\\primos.txt'
+
+#Possíveis simbolos
+simbolos = { "raiz_quadrada": '\u221A',
+             "euler": "e",
+             "pi": "\u03C0",
+             "theta": "\u03B8"}
+"""
+Operações a se trabalhar:         Realizado: (%)        Testes:
+    - Operações básicas             -> 100                 100 ->
+    - Exponenciais                  -> 0
+    - Raizes                        -> 0
+    - Logaritmos                    -> 0
+    - Chuverinho                    -> 0
+    - Ordem de Operações            -> 0
+    - Icognitas                     -> 0
+    - Polinomio                     -> 0
+
+"""
+#Operações Básicas: Contém frações!
+def soma(valor1: str, valor2: str) -> str:
+    """Soma dois números racionais."""
+    if '/' not in valor1:
+        if '/' not in valor2:
+            return str(float(valor1)+float(valor2))
+        else:
+            numerador1, denominador1 = converter_em_fracao(valor1).split('/')
+            numerador2, denominador2 = valor2.split('/')
+    else:
+        if '/' not in valor2:
+            numerador1, denominador1 = valor1.split('/')
+            numerador2, denominador2 = converter_em_fracao(valor2).split('/')
+        else:
+            numerador1, denominador1 = valor1.split('/')
+            numerador2, denominador2 = valor2.split('/')
+
+            if denominador1==denominador2:
+                return reduz_fracao(soma(numerador1,numerador2)+'/'+denominador1)
+            
+    return reduz_fracao(soma(multi(numerador1,denominador2),multi(numerador2,denominador1))+'/'+multi(denominador1,denominador2))      
+
+def diff(valor1: str, valor2:str) -> str:
+    """Diferença de dois números racionais. Segundo argumento muda o sinal."""
+    if '/' not in valor1:
+        if '/' not in valor2:
+            return str(float(valor1)-float(valor2))
+        else:
+            numerador1, denominador1 = converter_em_fracao(valor1).split('/')
+            numerador2, denominador2 = valor2.split('/')
+    else:
+        if '/' not in valor2:
+            numerador1, denominador1 = valor1.split('/')
+            numerador2, denominador2 = converter_em_fracao(valor2).split('/')
+        else:
+            numerador1, denominador1 = valor1.split('/')
+            numerador2, denominador2 = valor2.split('/')
+
+            if denominador1==denominador2:
+                return reduz_fracao(diff(numerador1,numerador2)+'/'+denominador1)
+            
+    return reduz_fracao(diff(multi(numerador1,denominador2),multi(numerador2,denominador1))+'/'+multi(denominador1,denominador2)) 
+
+def multi(valor1: str, valor2: str) -> float:
+    """Multiplicação de dois números racionais."""
+    if '/' not in valor1:
+        if '/' not in valor2:
+            return str(float(valor1)*float(valor2))
+        else:
+            numerador1, denominador1 = converter_em_fracao(valor1).split('/')
+            numerador2, denominador2 = valor2.split('/')
+
+    else:
+        if '/' not in valor2:
+            numerador1, denominador1 = valor1.split('/')
+            numerador2, denominador2 = converter_em_fracao(valor2).split('/')
+        else:
+            numerador1, denominador1 = valor1.split('/')
+            numerador2, denominador2 = valor2.split('/')
+
+    return reduz_fracao(multi(numerador1,numerador2)+'/'+multi(denominador1,denominador2))
+            
+def div(valor1: str, valor2: str) -> float:
+    """Divisão de números reais. Natualmente emite erro se houver divisão por zero."""
+    if '/' not in valor1:
+        if '/' not in valor2:
+            return str(float(valor1)/float(valor2))
+        else:
+            numerador1, denominador1 = converter_em_fracao(valor1).split('/')
+            numerador2, denominador2 = valor2.split('/')
+
+    else:
+        if '/' not in valor2:
+            numerador1, denominador1 = valor1.split('/')
+            numerador2, denominador2 = converter_em_fracao(valor2).split('/')
+        else:
+            numerador1, denominador1 = valor1.split('/')
+            numerador2, denominador2 = valor2.split('/')
+
+    return reduz_fracao(multi(numerador1,denominador2)+'/'+multi(denominador1,numerador2))
+
+def fatorial(valor: int) -> int:
+    """Fatorial na forma não integral, confia será útil."""
+    if valor == 0 or valor == 1:
+        return 1
+    else:
+        return valor * fatorial(valor-1)
+
+def multiplos_comuns(valores: list) -> set:
+    if isinstance(valores,str):
+        divisores = []
+        n = int(valores)
+        with open(primos, 'r') as f:
+            for linha in f:
+                p = int(linha.strip())
+                if p > n:
+                    break
+                elif n % p == 0:
+                    divisores.append(p)
+                elif p >1000000000:
+                    raise ValueError("Há algum erro na conta, não é possível.")
+        return divisores
+
+    """Retorna uma lista de multiplos comuns de dois números inteiros."""
+    lista_de_multiplos = [set(multiplos_comuns(int(valor))) for valor in valores]
+
+    intersecao = lista_de_multiplos[0]
+    for conjunto in lista_de_multiplos[1:]:
+        intersecao = intersecao & conjunto
+    return intersecao
+
+def converter_em_fracao(n: str) -> str: 
+    """
+    Inicialmente projetado para converter qualquer dizimias em fração. 
+    A ideias é converter qualquer número de ponto flutuante em fração. 
+    Lógico que função não será aplicada em números irracionais. 
+    Números irracionais são mais faceis de criar, precisiveis e não serão uma preocupação.
+    """
+
+    if '.' in n:
+        parte_inteira, resto = n.split('.')
+    else:
+        parte_inteira, resto = n, ''
+    
+    parte_inteira = int(parte_inteira) if parte_inteira else 0
+
+    if '(' in resto and ')' in resto:
+        nao_periodica, periodica = resto.split('(')
+        periodica = periodica.rstrip(')')
+    else:
+        if resto == '':
+            return f"{parte_inteira}"
+        
+        numerador = int(parte_inteira * (10 ** len(resto)) + int(resto))
+        denominador = 10 ** len(resto)
+        return reduz_fracao(f"{numerador}/{denominador}")
+    
+    n = len(nao_periodica)
+    k = len(periodica)
+  
+    total = int(nao_periodica + periodica)
+    nao_periodico_int = int(nao_periodica) if nao_periodica else 0
+    
+    numerador_decimal = total - nao_periodico_int
+    denominador_decimal = (10**n) * (10**k - 1)
+    
+    numerador_total = parte_inteira * denominador_decimal + numerador_decimal
+    denominador_total = denominador_decimal
+
+    #### Equação de conversão dizima em fração ==> 
+    # fração = parte inteira + {(todo número até o fim do período) - (todo número até antes do período)}/((10**k - 1 ) 10**n)
+
+    fracao_resultante =  reduz_fracao(f"{numerador_total}/{denominador_total}")
+
+    numerador, denominador = fracao_resultante.split('/')
+
+    if numerador > 1000000000 or denominador > 1000000000:
+        return n  #Quase irracional ou multiplos comuns são primos absurdamente grandes. Há um erro na conta se chegar com esse número até aqui.
+    
+    return fracao_resultante
+
+def reduz_fracao(fracao: str) -> str:
+    """Simplifica frações. É uma função recursiva, tome cuidado onde implementar."""
+    partes = fracao.split('/')   
+    numerador = int(float(partes[0]))
+    denominador = int(float(partes[1]))
+
+    negativo = False
+    if numerador<0:
+        negativo = True
+        numerador *= -1
+
+    comuns = multiplos_comuns([numerador, denominador])
+    if comuns:
+        for divisor in comuns:
+            numerador //= divisor
+            denominador //= divisor
+        if negativo:
+            return reduz_fracao(f"-{numerador}/{denominador}")
+        else:
+            return reduz_fracao(f"{numerador}/{denominador}")
+    else:
+        if denominador==1:
+            if negativo:
+                return f"-{numerador}"
+            else:
+                return f"{numerador}"
+        else:
+            if negativo:
+                return f"-{numerador}/{denominador}"
+            else:
+                return f"{numerador}/{denominador}"
