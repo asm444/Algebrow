@@ -8,7 +8,7 @@ simbolos = { "raiz_quadrada": '\u221A',
              "theta": "\u03B8"}
 """
 Operações a se trabalhar:         Realizado: (%)        Testes:             
-    - Operações básicas             -> 100                 10 | 10
+    - Operações básicas             -> 100                 26 | 26 +
     - Exponenciais                  -> 0
     - Raizes                        -> 0
     - Logaritmos                    -> 0
@@ -65,7 +65,20 @@ def diff(valor1: str, valor2:str) -> str:
     """Diferença de dois números racionais. Segundo argumento muda o sinal."""
     if '/' not in valor1:
         if '/' not in valor2:
-            return inteiro(str(float(valor1)-float(valor2)))
+            if '.' not in valor1:
+                if '.' not in valor2:
+                    return inteiro(str(int(valor1)-int(valor2)))
+                else:
+                    decimais = valor2.split('.')[1]
+            else:
+                if '.' not in valor2:
+                    decimais = valor1.split('.')[1]
+                else:
+                    if valor2.split('.')[1] < valor1.split('.')[1]:
+                        decimais = valor1.split('.')[1]
+                    else:
+                        decimais = valor2.split('.')[1]
+            return inteiro(str(round(float(valor1)-float(valor2),len(decimais))))
         else:
             numerador1, denominador1 = converter_em_fracao(valor1).split('/')
             numerador2, denominador2 = valor2.split('/')
@@ -86,7 +99,20 @@ def multi(valor1: str, valor2: str) -> float:
     """Multiplicação de dois números racionais."""
     if '/' not in valor1:
         if '/' not in valor2:
-            return inteiro(str(float(valor1)*float(valor2)))
+            if '.' not in valor1:
+                if '.' not in valor2:
+                    return inteiro(str(int(valor1)*int(valor2)))
+                else:
+                    decimais = valor2.split('.')[1]
+            else:
+                if '.' not in valor2:
+                    decimais = valor1.split('.')[1]
+                else:
+                    if valor2.split('.')[1] < valor1.split('.')[1]:
+                        decimais = valor1.split('.')[1]
+                    else:
+                        decimais = valor2.split('.')[1]
+            return inteiro(str(round(float(valor1)*float(valor2),len(decimais))))
         else:
             numerador1, denominador1 = converter_em_fracao(valor1).split('/')
             numerador2, denominador2 = valor2.split('/')
@@ -105,7 +131,20 @@ def div(valor1: str, valor2: str) -> float:
     """Divisão de números reais. Natualmente emite erro se houver divisão por zero."""
     if '/' not in valor1:
         if '/' not in valor2:
-            return inteiro(str(float(valor1)/float(valor2)))
+            if '.' not in valor1:
+                if '.' not in valor2:
+                    return inteiro(str(int(valor1)/int(valor2)))
+                else:
+                    decimais = valor2.split('.')[1]
+            else:
+                if '.' not in valor2:
+                    decimais = valor1.split('.')[1]
+                else:
+                    if valor2.split('.')[1] < valor1.split('.')[1]:
+                        decimais = valor1.split('.')[1]
+                    else:
+                        decimais = valor2.split('.')[1]
+            return inteiro(str(round(float(valor1)/float(valor2),len(decimais))))
         else:
             numerador1, denominador1 = converter_em_fracao(valor1).split('/')
             numerador2, denominador2 = valor2.split('/')
@@ -161,7 +200,7 @@ def converter_em_fracao(n: str) -> str:
     if '.' in n:
         parte_inteira, resto = n.split('.')
     else:
-        parte_inteira, resto = n, ''
+        return n+'/'+'1'
     
     parte_inteira = int(parte_inteira) if parte_inteira else 0
 
@@ -232,4 +271,3 @@ def reduz_fracao(fracao: str) -> str:
             else:
                 return f"{numerador}/{denominador}"
             
-print(soma("1/2", "2.1"))
