@@ -2,7 +2,7 @@ import sys, unittest, os, progress_bar
 
 # Adiciona o diretório pai ao path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from basic_operations import soma, diff, multi
+from basic_operations import soma, diff, multi, div
 
 class Operacoes_Basicas(unittest.TestCase):
 
@@ -128,57 +128,118 @@ class Operacoes_Basicas(unittest.TestCase):
         self.assertEqual(multi("3", "2"), "6")
 
     def test_multi_com_zero(self):    
-        self.assertEqual(multi("0", "3"), "-3")
-        self.assertEqual(multi("2", "0"), "2")
+        self.assertEqual(multi("0", "3"), "0")
+        self.assertEqual(multi("2", "0"), "0")
         self.assertEqual(multi("0", "0"), "0")
 
     def test_multi_com_zero_decimal(self):
         self.assertEqual(multi("0.0", "0.0"), "0")
-        self.assertEqual(multi("2", "0.0"), "2")
-        self.assertEqual(multi("1.0", "0.0"), "1")
+        self.assertEqual(multi("2", "0.0"), "0")
+        self.assertEqual(multi("1.0", "0.0"), "0")
         self.assertEqual(multi("0.0", "0.0"), "0")
           
     def test_multi_com_negativos(self):
-        self.assertEqual(multi("-2", "3"), "-5")
-        self.assertEqual(multi("2", "-3"), "5")
+        self.assertEqual(multi("-2", "3"), "-6")
+        self.assertEqual(multi("2", "-3"), "-6")
 
     def test_multi_decimais_com_negativos(self):
-        self.assertEqual(multi("-2.45", "3"), "-5.45")
-        self.assertEqual(multi("2", "-3.45"), "5.45")
+        self.assertEqual(multi("-2.45", "3"), "-7.35")
+        self.assertEqual(multi("2", "-3.45"), "-6.9")
 
     def test_multi_decimais(self):
-        self.assertEqual(multi("2.1", "3"), "-0.9")
-        self.assertEqual(multi("2.0", "3.002"), "-1.002")
+        self.assertEqual(multi("2.1", "3"), "6.3")
+        self.assertEqual(multi("2.0", "3.002"), "6.004")
 
     def test_multi_decimais_com_fracoes(self):
-        self.assertEqual(multi("2.1", "1/2"), "8/5")
-        self.assertEqual(multi("1/2", "2.1"), "-8/5")
+        self.assertEqual(multi("2.1", "1/2"), "21/20")
+        self.assertEqual(multi("1/2", "2.1"), "21/20")
 
     def test_multi_fracoes_com_zero(self):    
-        self.assertEqual(multi("0", "3/2"), "-3/2")
-        self.assertEqual(multi("2/3", "0"), "2/3")
+        self.assertEqual(multi("0", "3/2"), "0")
+        self.assertEqual(multi("2/3", "0"), "0")
         self.assertEqual(multi("0/1", "0/1"), "0")
 
     def test_multi_fracoes_negativas_com_zero(self):    
-        self.assertEqual(multi("0", "-3/2"), "3/2")
-        self.assertEqual(multi("-2/3", "0"), "-2/3")
+        self.assertEqual(multi("0", "-3/2"), "0")
+        self.assertEqual(multi("-2/3", "0"), "0")
         self.assertEqual(multi("0/1", "-0/1"), "0")
 
     def test_multi_fracoes_mesmo_denominador(self):    
-        self.assertEqual(multi("2/3", "1/3"), "1/3")
-        self.assertEqual(multi("1/3", "4/3"), "-1")
+        self.assertEqual(multi("2/3", "1/3"), "2/9")
+        self.assertEqual(multi("1/3", "4/3"), "4/9")
 
     def test_multi_fracoes_negativas_com__mesmo_denominador(self):    
-        self.assertEqual(multi("2/3", "-1/3"), "1")
-        self.assertEqual(multi("-2/3", "1/3"), "-1")
+        self.assertEqual(multi("2/3", "-1/3"), "-2/9")
+        self.assertEqual(multi("-2/3", "1/3"), "-2/9")
 
     def test_multi_fracoes_denominadores_diferentes(self):    
-        self.assertEqual(multi("1/3", "1/2"), "-1/6")
+        self.assertEqual(multi("1/3", "1/2"), "1/6")
         self.assertEqual(multi("1/2", "1/3"), "1/6")
 
     def test_multi_fracoes_denominadores_diferentes_uma_negativa(self):    
-        self.assertEqual(multi("1/3", "-1/2"), "5/6")
-        self.assertEqual(multi("-1/2", "1/3"), "-5/6")
+        self.assertEqual(multi("1/3", "-1/2"), "-1/6")
+        self.assertEqual(multi("-1/2", "1/3"), "-1/6")
+    
+    #Testando div
+    def test_div_inteiros(self):
+        self.assertEqual(div("2", "3"), "0.(6)")
+        self.assertEqual(div("3", "2"), "1.5")
+
+    def test_div_com_zero(self):
+        with self.assertRaises(ZeroDivisionError):
+            div("2", "0")
+            div("0","0")    
+    
+    def test_div_com_zero_decimal(self):
+        with self.assertRaises(ZeroDivisionError):
+            div("2", "0.0")
+            div("1.0", "0.0")
+            div("0.0", "0.0")
+          
+    def test_div_com_negativos(self):
+        self.assertEqual(div("-2", "3"), "-0.(6)")
+        self.assertEqual(div("2", "-3"), "-0.(6)")
+
+    def test_div_decimais_com_negativos(self):
+        self.assertEqual(div("-2.45", "3"), "-8")
+        self.assertEqual(div("2", "-3.45"), "-6.9")
+
+    def test_div_decimais(self):
+        self.assertEqual(div("2.1", "3"), "6.3")
+        self.assertEqual(div("2.0", "3.002"), "6.004")
+
+    def test_div_decimais_com_fracoes(self):
+        self.assertEqual(div("2.1", "1/2"), "21/20")
+        self.assertEqual(div("1/2", "2.1"), "21/20")
+
+    def test_div_fracoes_por_zero(self):    
+        self.assertEqual(div("0", "3/2"), "0")
+        self.assertEqual(div("2/3", "0"), "0")
+        self.assertEqual(div("0/1", "0/1"), "0")
+
+    def test_div_fracoes_negativas_com_zero(self):
+        with self.assertRaises(ZeroDivisionError):   
+            div("-2/3", "0")
+            div("0/1", "-0/1")
+
+    def test_div_fracoes_mesmo_denominador(self):    
+        self.assertEqual(div("2/3", "1/3"), "2")
+        self.assertEqual(div("1/3", "4/3"), "1/4")
+
+    def test_div_fracoes_negativas_com__mesmo_denominador(self):    
+        self.assertEqual(div("2/3", "-1/3"), "-2")
+        self.assertEqual(div("-2/3", "1/3"), "-2")
+
+    def test_div_fracoes_denominadores_diferentes(self):    
+        self.assertEqual(div("1/3", "1/2"), "2/3")
+        self.assertEqual(div("1/2", "1/3"), "3/2")
+
+    def test_div_fracoes_denominadores_diferentes_uma_negativa(self):    
+        self.assertEqual(div("1/3", "-1/2"), "-2/3")
+        self.assertEqual(div("-1/2", "1/3"), "-3/2")
+
+
+    
     
 
 if __name__ == "__main__":

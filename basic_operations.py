@@ -97,43 +97,75 @@ def diff(valor1: str, valor2:str) -> str:
 
 def multi(valor1: str, valor2: str) -> float:
     """Multiplicação de dois números racionais."""
-    if '/' not in valor1:
-        if '/' not in valor2:
-            if '.' not in valor1:
-                if '.' not in valor2:
-                    return inteiro(str(int(valor1)*int(valor2)))
-                else:
-                    decimais = valor2.split('.')[1]
-            else:
-                if '.' not in valor2:
-                    decimais = valor1.split('.')[1]
-                else:
-                    if valor2.split('.')[1] < valor1.split('.')[1]:
-                        decimais = valor1.split('.')[1]
+    if valor1 == '0' or valor2 == '0':
+        return '0'
+    else:
+        if '/' not in valor1:
+            if '/' not in valor2:
+                if '.' not in valor1:
+                    if '.' not in valor2:
+                        return inteiro(str(int(valor1)*int(valor2)))
                     else:
                         decimais = valor2.split('.')[1]
-            return inteiro(str(round(float(valor1)*float(valor2),len(decimais))))
-        else:
-            numerador1, denominador1 = converter_em_fracao(valor1).split('/')
-            numerador2, denominador2 = valor2.split('/')
+                else:
+                    if '.' not in valor2:
+                        decimais = valor1.split('.')[1]
+                    else:
+                        decimais = valor2.split('.')[1]+valor1.split('.')[1]
+                return inteiro(str(round(float(valor1)*float(valor2),len(decimais))))
+            else:
+                numerador1, denominador1 = converter_em_fracao(valor1).split('/')
+                numerador2, denominador2 = valor2.split('/')
+                if numerador2=='0': return '0'
 
-    else:
-        if '/' not in valor2:
-            numerador1, denominador1 = valor1.split('/')
-            numerador2, denominador2 = converter_em_fracao(valor2).split('/')
         else:
-            numerador1, denominador1 = valor1.split('/')
-            numerador2, denominador2 = valor2.split('/')
+            if '/' not in valor2:
+                numerador1, denominador1 = valor1.split('/')
+                if numerador1=='0': return '0'
+                numerador2, denominador2 = converter_em_fracao(valor2).split('/')
+            else:
+                numerador1, denominador1 = valor1.split('/')
+                numerador2, denominador2 = valor2.split('/')
 
-    return reduz_fracao(multi(numerador1,numerador2)+'/'+multi(denominador1,denominador2))
+        return reduz_fracao(multi(numerador1,numerador2)+'/'+multi(denominador1,denominador2))
             
 def div(valor1: str, valor2: str) -> float:
-    """Divisão de números reais. Natualmente emite erro se houver divisão por zero."""
+    """Divisão de números racionais. Natualmente emite erro se houver divisão por zero."""
+    def decimal(numerador, denominador):
+        numerador, denominador = float(valor1), float(valor2)
+                    inteiro = numerador // denominador
+                    resto = numerador % denominador
+
+                    if resto == 0:
+                        return f"{inteiro}"
+
+                    decimais = ""
+                    restos_posicoes = {}  # Dicionário para guardar posição de cada resto
+                    i = 0
+
+                    while resto != 0 and resto not in restos_posicoes:
+                        restos_posicoes[resto] = i
+                        resto *= 10
+                        digito = resto // denominador
+                        decimais += str(digito)
+                        resto = resto % denominador
+                        i += 1
+
+                    if resto == 0:
+                        # Decimal finito
+                        return f"{inteiro}.{decimais}"
+                    else:
+                        # Há uma repetição a partir de restos_posicoes[resto]
+                        pos = restos_posicoes[resto]
+                        parte_nao_repetida = decimais[:pos]
+                        parte_repetida = decimais[pos:]
+                        return f"{inteiro}.{parte_nao_repetida}({parte_repetida})"
+                    return inteiro(str(int(valor1)/int(valor2)))
     if '/' not in valor1:
         if '/' not in valor2:
             if '.' not in valor1:
                 if '.' not in valor2:
-                    return inteiro(str(int(valor1)/int(valor2)))
+                    return 
                 else:
                     decimais = valor2.split('.')[1]
             else:
@@ -243,6 +275,8 @@ def reduz_fracao(fracao: str) -> str:
     """Simplifica frações. É uma função recursiva, tome cuidado onde implementar."""
     partes = fracao.split('/')   
     numerador = int(float(partes[0]))
+    if numerador == '0':
+        return '0'
     denominador = int(float(partes[1]))
 
     negativo = False
