@@ -7,8 +7,8 @@ simbolos = { "raiz_quadrada": '\u221A',
              "pi": "\u03C0",
              "theta": "\u03B8"}
 """
-Operações a se trabalhar:         Realizado: (%)        Testes:
-    - Operações básicas             -> 100                 100 ->
+Operações a se trabalhar:         Realizado: (%)        Testes:             
+    - Operações básicas             -> 100                 10 | 10
     - Exponenciais                  -> 0
     - Raizes                        -> 0
     - Logaritmos                    -> 0
@@ -18,12 +18,33 @@ Operações a se trabalhar:         Realizado: (%)        Testes:
     - Polinomio                     -> 0
 
 """
+def inteiro(numero):
+    ponto = float(numero)
+    inteiro = int(ponto)
+    if ponto.is_integer():
+        return str(inteiro)
+    else:
+        return numero
 #Operações Básicas: Contém frações!
 def soma(valor1: str, valor2: str) -> str:
     """Soma dois números racionais."""
     if '/' not in valor1:
         if '/' not in valor2:
-            return str(float(valor1)+float(valor2))
+            if '.' not in valor1:
+                if '.' not in valor2:
+                    return inteiro(str(int(valor1)+int(valor2)))
+                else:
+                    decimais = valor2.split('.')[1]
+            else:
+                if '.' not in valor2:
+                    decimais = valor1.split('.')[1]
+                else:
+                    if valor2.split('.')[1] < valor1.split('.')[1]:
+                        decimais = valor1.split('.')[1]
+                    else:
+                        decimais = valor2.split('.')[1]
+            return inteiro(str(round(float(valor1)+float(valor2),len(decimais))))
+            
         else:
             numerador1, denominador1 = converter_em_fracao(valor1).split('/')
             numerador2, denominador2 = valor2.split('/')
@@ -44,7 +65,7 @@ def diff(valor1: str, valor2:str) -> str:
     """Diferença de dois números racionais. Segundo argumento muda o sinal."""
     if '/' not in valor1:
         if '/' not in valor2:
-            return str(float(valor1)-float(valor2))
+            return inteiro(str(float(valor1)-float(valor2)))
         else:
             numerador1, denominador1 = converter_em_fracao(valor1).split('/')
             numerador2, denominador2 = valor2.split('/')
@@ -65,7 +86,7 @@ def multi(valor1: str, valor2: str) -> float:
     """Multiplicação de dois números racionais."""
     if '/' not in valor1:
         if '/' not in valor2:
-            return str(float(valor1)*float(valor2))
+            return inteiro(str(float(valor1)*float(valor2)))
         else:
             numerador1, denominador1 = converter_em_fracao(valor1).split('/')
             numerador2, denominador2 = valor2.split('/')
@@ -84,7 +105,7 @@ def div(valor1: str, valor2: str) -> float:
     """Divisão de números reais. Natualmente emite erro se houver divisão por zero."""
     if '/' not in valor1:
         if '/' not in valor2:
-            return str(float(valor1)/float(valor2))
+            return inteiro(str(float(valor1)/float(valor2)))
         else:
             numerador1, denominador1 = converter_em_fracao(valor1).split('/')
             numerador2, denominador2 = valor2.split('/')
@@ -107,7 +128,7 @@ def fatorial(valor: int) -> int:
         return valor * fatorial(valor-1)
 
 def multiplos_comuns(valores: list) -> set:
-    if isinstance(valores,str):
+    if isinstance(valores,str) or isinstance(valores,int):
         divisores = []
         n = int(valores)
         with open(primos, 'r') as f:
@@ -121,13 +142,13 @@ def multiplos_comuns(valores: list) -> set:
                     raise ValueError("Há algum erro na conta, não é possível.")
         return divisores
 
-    """Retorna uma lista de multiplos comuns de dois números inteiros."""
-    lista_de_multiplos = [set(multiplos_comuns(int(valor))) for valor in valores]
+    else:
+        lista_de_multiplos = [set(multiplos_comuns(int(valor))) for valor in valores]
 
-    intersecao = lista_de_multiplos[0]
-    for conjunto in lista_de_multiplos[1:]:
-        intersecao = intersecao & conjunto
-    return intersecao
+        intersecao = lista_de_multiplos[0]
+        for conjunto in lista_de_multiplos[1:]:
+            intersecao = intersecao & conjunto
+        return intersecao
 
 def converter_em_fracao(n: str) -> str: 
     """
@@ -210,3 +231,5 @@ def reduz_fracao(fracao: str) -> str:
                 return f"-{numerador}/{denominador}"
             else:
                 return f"{numerador}/{denominador}"
+            
+print(soma("1/2", "2.1"))
