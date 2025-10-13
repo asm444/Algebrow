@@ -8,8 +8,8 @@ simbolos = { "raiz_quadrada": '\u221A',
              "theta": "\u03B8"}
 """
 Operações a se trabalhar:         Realizado: (%)        Testes:             
-    - Operações básicas             -> 100                 26 | 26 +
-    - Exponenciais                  -> 0
+    - Operações básicas             -> 100                 52 | 52
+    - Exponenciais                  -> Starting
     - Raizes                        -> 0
     - Logaritmos                    -> 0
     - Chuverinho                    -> 0
@@ -26,7 +26,7 @@ def inteiro(numero):
     else:
         return numero
     
-def detectar_dizima(numerador, denominador, sinal=''):
+def detectar_dizima(numerador, denominador):
     numerador = abs(float(numerador))
     denominador = abs(float(denominador))
 
@@ -47,7 +47,7 @@ def detectar_dizima(numerador, denominador, sinal=''):
     resto = numerador_final % denominador_final
 
     if resto == 0:
-        return f"{sinal}{float(parte_inteira)}"
+        return f"{float(parte_inteira)}"
 
     parte_decimal = ""
     restos_vistos = {}
@@ -67,17 +67,17 @@ def detectar_dizima(numerador, denominador, sinal=''):
         pos += 1
 
         if pos > 200:
-            return f"{sinal}{float(numerador_final / denominador_final)}"
+            return f"{float(numerador_final / denominador_final)}"
 
     if repeticao_inicio is not None:
         parte_nao_repete = parte_decimal[:repeticao_inicio]
         parte_repete = parte_decimal[repeticao_inicio:]
         if parte_nao_repete == "":
-            return f"{sinal}{parte_inteira}.({parte_repete})"
+            return f"{parte_inteira}.({parte_repete})"
         else:
-            return f"{sinal}{parte_inteira}.{parte_nao_repete}({parte_repete})"
+            return f"{parte_inteira}.{parte_nao_repete}({parte_repete})"
 
-    return f"{sinal}{float(numerador_final / denominador_final)}"
+    return f"{float(numerador_final / denominador_final)}"
 
 #Operações Básicas: Contém frações!
 def soma(valor1: str, valor2: str) -> str:
@@ -339,6 +339,4 @@ def reduz_fracao(fracao: str) -> str:
             if negativo:
                 return f"-{numerador}/{denominador}"
             else:
-                return f"{numerador}/{denominador}"
-
-print(div("-2", "3"))           
+                return f"{numerador}/{denominador}"        

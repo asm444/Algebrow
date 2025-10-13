@@ -2,7 +2,7 @@ import sys, unittest, os, progress_bar
 
 # Adiciona o diretório pai ao path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from basic_operations import soma, diff, multi, div
+from basic.basic_operations import soma, diff, multi, div
 
 class Operacoes_Basicas(unittest.TestCase):
 
@@ -239,10 +239,6 @@ class Operacoes_Basicas(unittest.TestCase):
     def test_div_fracoes_denominadores_diferentes_uma_negativa(self):    
         self.assertEqual(div("1/3", "-1/2"), "-2/3")
         self.assertEqual(div("-1/2", "1/3"), "-3/2")
-
-
-    
-    
 
 if __name__ == "__main__":
     progress_bar.progress_bar(Operacoes_Basicas)
