@@ -25,6 +25,60 @@ def inteiro(numero):
         return str(inteiro)
     else:
         return numero
+    
+def detectar_dizima(numerador, denominador, sinal=''):
+    numerador = abs(float(numerador))
+    denominador = abs(float(denominador))
+
+    def normalizar(valor):
+        s = str(valor)
+        if '.' in s:
+            casas = len(s.split('.')[1])
+            return int(s.replace('.', '')), 10 ** casas
+        return int(valor), 1
+
+    n_num, d_num = normalizar(numerador)
+    n_den, d_den = normalizar(denominador)
+
+    numerador_final = n_num * d_den
+    denominador_final = n_den * d_num
+
+    parte_inteira = numerador_final // denominador_final
+    resto = numerador_final % denominador_final
+
+    if resto == 0:
+        return f"{sinal}{float(parte_inteira)}"
+
+    parte_decimal = ""
+    restos_vistos = {}
+    pos = 0
+    repeticao_inicio = None
+
+    while resto != 0:
+        if resto in restos_vistos:
+            repeticao_inicio = restos_vistos[resto]
+            break
+
+        restos_vistos[resto] = pos
+        resto *= 10
+        digito = resto // denominador_final
+        parte_decimal += str(digito)
+        resto = resto % denominador_final
+        pos += 1
+
+        if pos > 200:
+            return f"{sinal}{float(numerador_final / denominador_final)}"
+
+    if repeticao_inicio is not None:
+        parte_nao_repete = parte_decimal[:repeticao_inicio]
+        parte_repete = parte_decimal[repeticao_inicio:]
+        if parte_nao_repete == "":
+            return f"{sinal}{parte_inteira}.({parte_repete})"
+        else:
+            return f"{sinal}{parte_inteira}.{parte_nao_repete}({parte_repete})"
+
+    return f"{sinal}{float(numerador_final / denominador_final)}"
+
 #Operações Básicas: Contém frações!
 def soma(valor1: str, valor2: str) -> str:
     """Soma dois números racionais."""
@@ -131,65 +185,47 @@ def multi(valor1: str, valor2: str) -> float:
             
 def div(valor1: str, valor2: str) -> float:
     """Divisão de números racionais. Natualmente emite erro se houver divisão por zero."""
-    def decimal(numerador, denominador):
-        numerador, denominador = float(valor1), float(valor2)
-                    inteiro = numerador // denominador
-                    resto = numerador % denominador
-
-                    if resto == 0:
-                        return f"{inteiro}"
-
-                    decimais = ""
-                    restos_posicoes = {}  # Dicionário para guardar posição de cada resto
-                    i = 0
-
-                    while resto != 0 and resto not in restos_posicoes:
-                        restos_posicoes[resto] = i
-                        resto *= 10
-                        digito = resto // denominador
-                        decimais += str(digito)
-                        resto = resto % denominador
-                        i += 1
-
-                    if resto == 0:
-                        # Decimal finito
-                        return f"{inteiro}.{decimais}"
-                    else:
-                        # Há uma repetição a partir de restos_posicoes[resto]
-                        pos = restos_posicoes[resto]
-                        parte_nao_repetida = decimais[:pos]
-                        parte_repetida = decimais[pos:]
-                        return f"{inteiro}.{parte_nao_repetida}({parte_repetida})"
-                    return inteiro(str(int(valor1)/int(valor2)))
+    #Sinal
+    if '-' in valor1 and  '-' not in valor2:
+        sinal = '-'
+        valor1 = valor1.split('-')[1]
+    elif '-' in valor2 and  '-' not in valor1:
+        sinal = '-'
+        valor2 = valor2.split('-')[1]
+    elif '-' in valor1 and '-' in valor2:
+        sinal = ''
+    else:
+        sinal =''
     if '/' not in valor1:
         if '/' not in valor2:
-            if '.' not in valor1:
-                if '.' not in valor2:
-                    return 
-                else:
-                    decimais = valor2.split('.')[1]
-            else:
-                if '.' not in valor2:
-                    decimais = valor1.split('.')[1]
-                else:
-                    if valor2.split('.')[1] < valor1.split('.')[1]:
-                        decimais = valor1.split('.')[1]
-                    else:
-                        decimais = valor2.split('.')[1]
-            return inteiro(str(round(float(valor1)/float(valor2),len(decimais))))
+            if valor1 =='0': 
+                if valor2 =='0': raise ZeroDivisionError("Divisão por zero")
+
+                return '0'             
+            
+            return sinal+detectar_dizima(inteiro(valor1), inteiro(valor2))
         else:
+            if valor1 =='0': return '0' 
+
             numerador1, denominador1 = converter_em_fracao(valor1).split('/')
             numerador2, denominador2 = valor2.split('/')
-
+            if numerador2 =='0': raise ZeroDivisionError("Divisão por zero")
     else:
         if '/' not in valor2:
+            if valor2 =='0': raise ZeroDivisionError("Divisão por zero")
+            
             numerador1, denominador1 = valor1.split('/')
             numerador2, denominador2 = converter_em_fracao(valor2).split('/')
+
         else:
             numerador1, denominador1 = valor1.split('/')
             numerador2, denominador2 = valor2.split('/')
 
-    return reduz_fracao(multi(numerador1,denominador2)+'/'+multi(denominador1,numerador2))
+            if numerador2 =='0': raise ZeroDivisionError("Divisão por zero")
+
+    if numerador2=='0' or denominador1 =='0': raise ZeroDivisionError("Divisão por zero")
+
+    return sinal+reduz_fracao(multi(numerador1,denominador2)+'/'+multi(denominador1,numerador2))
 
 def fatorial(valor: int) -> int:
     """Fatorial na forma não integral, confia será útil."""
@@ -304,4 +340,5 @@ def reduz_fracao(fracao: str) -> str:
                 return f"-{numerador}/{denominador}"
             else:
                 return f"{numerador}/{denominador}"
-            
+
+print(div("-2", "3"))           

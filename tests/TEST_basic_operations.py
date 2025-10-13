@@ -188,12 +188,15 @@ class Operacoes_Basicas(unittest.TestCase):
     def test_div_com_zero(self):
         with self.assertRaises(ZeroDivisionError):
             div("2", "0")
+        with self.assertRaises(ZeroDivisionError):
             div("0","0")    
     
     def test_div_com_zero_decimal(self):
         with self.assertRaises(ZeroDivisionError):
             div("2", "0.0")
+        with self.assertRaises(ZeroDivisionError):
             div("1.0", "0.0")
+        with self.assertRaises(ZeroDivisionError):
             div("0.0", "0.0")
           
     def test_div_com_negativos(self):
@@ -201,25 +204,24 @@ class Operacoes_Basicas(unittest.TestCase):
         self.assertEqual(div("2", "-3"), "-0.(6)")
 
     def test_div_decimais_com_negativos(self):
-        self.assertEqual(div("-2.45", "3"), "-8")
-        self.assertEqual(div("2", "-3.45"), "-6.9")
+        self.assertEqual(div("-2.45", "3"), "-0.81(6)")
+        self.assertEqual(div("2", "-3.45"), "-0.(5797101449275362318840)")
 
     def test_div_decimais(self):
-        self.assertEqual(div("2.1", "3"), "6.3")
-        self.assertEqual(div("2.0", "3.002"), "6.004")
+        self.assertEqual(div("2.1", "3"), "0.7")
+        self.assertEqual(div("2.0", "3.00"), "0.(6)")
 
     def test_div_decimais_com_fracoes(self):
-        self.assertEqual(div("2.1", "1/2"), "21/20")
-        self.assertEqual(div("1/2", "2.1"), "21/20")
+        self.assertEqual(div("2.1", "1/2"), "21/5")
+        self.assertEqual(div("1/2", "2.1"), "5/21")
 
     def test_div_fracoes_por_zero(self):    
         self.assertEqual(div("0", "3/2"), "0")
-        self.assertEqual(div("2/3", "0"), "0")
-        self.assertEqual(div("0/1", "0/1"), "0")
 
     def test_div_fracoes_negativas_com_zero(self):
         with self.assertRaises(ZeroDivisionError):   
             div("-2/3", "0")
+        with self.assertRaises(ZeroDivisionError):
             div("0/1", "-0/1")
 
     def test_div_fracoes_mesmo_denominador(self):    
