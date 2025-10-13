@@ -3,12 +3,28 @@ import basic_operations
 class Numero:
     def __init__(self, coeficiente):
         self.coeficiente = coeficiente
-    def numero(self):
-        return f'{self.coeficiente}'
+        if '/' not in self.coeficiente:
+            self.fracao = basic_operations.converter_em_fracao(coeficiente)
+            self.numerador, self.denominador = self.fracao.split('/')
+        else:
+            self.numerador, self.denominador = coeficiente.split('/')
+            self.fracao = coeficiente
+    def numero_real(self):
+        if '/' not in self.coeficiente:
+            return self.coeficiente
+        else:
+            return basic_operations.div(*self.fracao.split('/'))
     def numerador(self):
-        return basic_operations.converter_em_fracao(self.coeficiente)[0]
+        return self.numerador
     def denominador(self):
-        return basic_operations.converter_em_fracao(self.coeficiente)[1]
+        return self.denominador
+    def retornar_fracao(self):
+        return self.fracao
+    def representacao_latex(self,fracao=False):
+        if fracao or '/' in self.coeficiente:
+            return "\\frac{"+self.numerador+"}{"+self.denominador+"}"
+        else:
+            return self.coeficiente
 
 class Exponencial:
     def __init__(self, base, expoente,coeficiente):
@@ -16,13 +32,19 @@ class Exponencial:
         self.expoente = expoente
         self.coeficiente = coeficiente
 
-    def exponencial_em_numero(self):
+    def numero_real(self):
         if '/' in self.coeficiente:
             numerador, denominador = self.coeficiente.split('/')
             expoente = basic_operations.div(numerador,denominador)
         else:
             expoente = float(self.expoente)
-        return float(self.base)**expoente
+        return str(float(self.base)**self.expoente)
+
+    def is_exponencial_puro(self):
+        if self.coeficiente=='1':
+            return True
+        else:
+            return False
     
     def multi_expo(self, exponencial):
         if not isinstance(exponencial, Exponencial):
@@ -51,11 +73,28 @@ class Exponencial:
         else:
             return f'{self.base}^{self.coeficiente}'
         
-    def exponencial_to_raiz(self):
+    def exponencial_em_raiz(self):
         if '/' not in self.expoente:
-            raise ValueError(f'Não é possível converter em raiz quadrada, o expoente é {self.coeficiente}')
+            numerador, denominador = basic_operations.converter_em_fracao(self.expoente).split('/')
         else:
-            pass
+            numerador, denominador = self.coeficiente.split('/')
+
+        if denominador=='1':
+            raise ValueError(f'Não é possível converter em raiz quadrada, o expoente é {self.coeficiente}')
+        elif numerador=='1':
+            return Raiz(self.base, denominador)
+        else:
+            self.expoente = basic_operations.reduz_fracao(self.expoente)
+            if '/' not in self.expoente: 
+                raise ValueError(f'Não é possível converter em raiz quadrada, o expoente é {self.coeficiente}')
+            
+
+
+
+        
+        
+
+            
 
 class Raiz:
     def __init__(self, radicando, raiz):
