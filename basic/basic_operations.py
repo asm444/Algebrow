@@ -264,8 +264,10 @@ def converter_em_fracao(n: str) -> str:
     Lógico que função não será aplicada em números irracionais. 
     Números irracionais são mais faceis de criar, precisiveis e não serão uma preocupação.
     """
+    if '/' in n:
+        return n
 
-    if '.' in n:
+    elif '.' in n:
         parte_inteira, resto = n.split('.')
     else:
         return n+'/'+'1'
