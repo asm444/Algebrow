@@ -1,20 +1,27 @@
-"""
-A ideia principal desse arquivo é definir um objeto chamado Número. Os outros objetos serão declarados
-em arquivos diferentes pois será extenso. Lidar com cada um deles. Definir essas operações é uma vira
-de chave para aumentar a complexidade sem preocupações.
+import basic_operations
 
-Será contido formas de se lidar com diversos tipos de números como
-    * Irracionais representados por
-        * Exponenciais
-        * Logaritmos
-        * Raizes
-    No caso de lidar com esses objetos usando operações básicas sem decompor para decimal
-        * Lidar por ordem de prioridade:
-            1 -> Número inteiro ou racional
-            2 -> Exponencial
-            3 -> Raiz
-            4 -> Logaritmo
-        * Simplificar o máximo que conseguir ao interagir na interação de cada um 
-        deles sem perder informações mantendo as estruturas.
-        * Se alguma operação levar a uma simplificação por 1, (excluindo o objeto) ele deve testar.
-"""
+class Numero:
+    def __init__(self, coeficiente):
+        self.coeficiente = coeficiente
+        if '/' not in self.coeficiente:
+            self.fracao = basic_operations.converter_em_fracao(coeficiente)
+            self.numerador, self.denominador = self.fracao.split('/')
+        else:
+            self.numerador, self.denominador = coeficiente.split('/')
+            self.fracao = coeficiente
+    def numero_real(self):
+        if '/' not in self.coeficiente:
+            return self.coeficiente
+        else:
+            return basic_operations.div(*self.fracao.split('/'))
+    def numerador(self):
+        return self.numerador
+    def denominador(self):
+        return self.denominador
+    def retornar_fracao(self):
+        return self.fracao
+    def representacao_latex(self,fracao=False):
+        if fracao or '/' in self.coeficiente:
+            return "\\frac{"+self.numerador+"}{"+self.denominador+"}"
+        else:
+            return self.coeficiente
