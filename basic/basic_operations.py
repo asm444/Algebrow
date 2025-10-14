@@ -1,23 +1,6 @@
 ############# Variáveis
 primos = '.\\data\\primos.txt'
 
-#Possíveis simbolos
-simbolos = { "raiz_quadrada": '\u221A',
-             "euler": "e",
-             "pi": "\u03C0",
-             "theta": "\u03B8"}
-"""
-Operações a se trabalhar:         Realizado: (%)        Testes:             
-    - Operações básicas             -> 100                 52 | 52
-    - Exponenciais                  -> Starting
-    - Raizes                        -> 0
-    - Logaritmos                    -> 0
-    - Chuverinho                    -> 0
-    - Ordem de Operações            -> 0
-    - Icognitas                     -> 0
-    - Polinomio                     -> 0
-
-"""
 def inteiro(numero):
     ponto = float(numero)
     inteiro = int(ponto)

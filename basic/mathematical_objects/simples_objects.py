@@ -87,14 +87,6 @@ class Exponencial:
             self.expoente = basic_operations.reduz_fracao(self.expoente)
             if '/' not in self.expoente: 
                 raise ValueError(f'Não é possível converter em raiz quadrada, o expoente é {self.coeficiente}')
-            
-
-
-
-        
-        
-
-            
 
 class Raiz:
     def __init__(self, radicando, raiz):
