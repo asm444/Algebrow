@@ -1,5 +1,7 @@
 ############# Variáveis
-primos = '.\\data\\primos.txt'
+from os import path
+ROOT_DIR = path.dirname(path.dirname(path.abspath(__file__)))
+primos = path.join(ROOT_DIR, "data", "primos.txt")
 
 def inteiro(numero):
     ponto = float(numero)
