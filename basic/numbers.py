@@ -1,4 +1,4 @@
-import basic_operations
+from basic import basic_operations
 
 #Representação LaTeX
 simbolo = {
@@ -211,11 +211,10 @@ def simplificar(objeto):
 
         return objeto
     
-    elif objeto.tipo_de_numero == 'raiz':
+    elif objeto.tipo_de_numero == 'raiz': #Testar todo tipo de comportamento inesperado
 
         radicando = number_to_potencia(objeto.return_radicando())
         indice = objeto.return_indice()
-
         coeficiente_total = '1'
         radicando_total = '1'
         #Verificando se radicando sai da raiz ou parte dele
@@ -223,6 +222,11 @@ def simplificar(objeto):
             expoente_temporario = basic_operations.reduz_fracao(radicando[base] + '/' + indice)
             if '/' in expoente_temporario:
                 expo_num, expo_dem = expoente_temporario.split('/')
+
+                inteiro = str(int(expo_num)//int(expo_dem))
+                expoente_temporario = basic_operations.diff(expoente_temporario, inteiro)
+                coeficiente_total = basic_operations.multi(base,inteiro)
+
                 if expo_dem=='1':
                     if expo_num=='1':
                         coeficiente_total = basic_operations.multi(coeficiente_total, base)
@@ -243,7 +247,9 @@ def simplificar(objeto):
             objeto.modify_coeficiente(coeficiente_total)
 
             return objeto
-raiz = Raiz('2','125')
+    elif objeto.tipo_de_numero == 'logaritmo':
+        pass
+raiz = Raiz('3','4')
 print(simplificar(raiz).representacao_latex())
         
 
