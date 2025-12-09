@@ -22,11 +22,11 @@ def exponencial_latex(base: str, expoente: str, coeficiente = ''):
 
 def raiz_latex(radicando: str, indice: str, coeficiente = '') -> str:
     """Retorna coeficiente\\sqrt{radicando}{indice}"""
-    return coeficiente + "\\sqrt" + em_chaves(indice) + em_chaves(radicando)
+    return coeficiente + "\sqrt" + em_chaves(indice) + em_chaves(radicando)
 
 def logaritmo_latex(base: str, logaritimando:str, coeficiente = '')-> str:
     """Retorna coeficiente\\log_{base}{logaritmando}"""
-    return coeficiente + '\\log_' + em_chaves(base) + em_chaves(logaritimando)
+    return coeficiente + '\log_' + em_chaves(base) + em_chaves(logaritimando)
 
 ## Definindo Exponencial, Raiz, Logaritmo, Fração
 class Exponencial:
@@ -218,12 +218,16 @@ def simplificar(objeto):
         coeficiente_total = '1'
         radicando_total = '1'
         #Verificando se radicando sai da raiz ou parte dele
+        for i, j in radicando.items():
+            print('base  ', i, 'expoente  ',  j)
         for base in radicando.keys():
             expoente_temporario = basic_operations.reduz_fracao(radicando[base] + '/' + indice)
             if '/' in expoente_temporario:
                 expo_num, expo_dem = expoente_temporario.split('/')
 
                 inteiro = str(int(expo_num)//int(expo_dem))
+                if inteiro!='0':
+                    expo_num = basic_operations.diff(expo_num, basic_operations.multi(inteiro,indice))
                 expoente_temporario = basic_operations.diff(expoente_temporario, inteiro)
                 coeficiente_total = basic_operations.multi(base,inteiro)
 

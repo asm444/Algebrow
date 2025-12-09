@@ -16,15 +16,14 @@ class Simplificao(unittest.TestCase):
         self.assertEqual(simplificar(Raiz('2','36')).representacao_latex(),   "6")
         self.assertEqual(simplificar(Raiz('3','1728')).representacao_latex(), "12")
         
-    def test_simplificar_raiz_de_numeros_mistos_com_potencia_diferente_ao_indice(self):
+    def test_simplificar_raiz_de_reduzir_radicando_puro(self):
 
-        self.assertEqual(simplificar(Raiz('2','36')).representacao_latex(),  "3")
-        self.assertEqual(simplificar(Raiz('3','1728')).representacao_latex(), 
-                                                                        "1")
+        self.assertEqual(simplificar(Raiz('2','216')).representacao_latex(),  "3\sqrt{2}{6}")
+        self.assertEqual(simplificar(Raiz('7','134217728')).representacao_latex(), "8\sqrt{7}{8}")
 
 
 
            
 if __name__ == "__main__":
-    progress_bar.progress_bar(Operacoes_Basicas)
+    progress_bar.progress_bar(Simplificao)
     unittest.main()
