@@ -235,15 +235,38 @@ def simplificar(objeto):
         #Devolvendo o objeto simplificado
         if radicando_total=='1':
             return Inteiro(coeficiente_total)
+        elif radicando_total=='0':
+            return Inteiro('0')
         else:
             objeto.modify_radicando(radicando_total)
             objeto.modify_coeficiente(coeficiente_total)
 
             return objeto
-    elif objeto.tipo_de_numero == 'logaritmo':
-        pass
-raiz = Raiz('3','4')
-print(simplificar(raiz).representacao_latex())
+
+    elif objeto.tipo_de_numero == 'exponencial':
+
+        base_total = '1'
+        expoente_total = '1'
+
+        expoente = objeto.return_expoente()
+
+        multiplos = number_to_potencia(objeto.return_base())
+        for base in multiplos.keys():
+
+            base_total =multiplos.keys()        
+            expoente_total = basic_operations.multi(multiplos, expoente)
+
+            objeto.modify_base(base_total)
+            objeto.modify_expoente(expoente_total)
+
+            return objeto
+
+        
+        for i,j in multiplos.items():
+            print('base ', i,'expoente ',j)
+        
+        return 1
+
         
 
 
