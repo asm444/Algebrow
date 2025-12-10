@@ -218,31 +218,20 @@ def simplificar(objeto):
         coeficiente_total = '1'
         radicando_total = '1'
         #Verificando se radicando sai da raiz ou parte dele
-        for i, j in radicando.items():
-            print('base  ', i, 'expoente  ',  j)
         for base in radicando.keys():
-            expoente_temporario = basic_operations.reduz_fracao(radicando[base] + '/' + indice)
-            if '/' in expoente_temporario:
-                expo_num, expo_dem = expoente_temporario.split('/')
-
-                inteiro = str(int(expo_num)//int(expo_dem))
-                if inteiro!='0':
-                    expo_num = basic_operations.diff(expo_num, basic_operations.multi(inteiro,indice))
-                expoente_temporario = basic_operations.diff(expoente_temporario, inteiro)
-                coeficiente_total = basic_operations.multi(base,inteiro)
-
-                if expo_dem=='1':
-                    if expo_num=='1':
-                        coeficiente_total = basic_operations.multi(coeficiente_total, base)
-                    else:
-                        coeficiente_total = basic_operations.multi(coeficiente_total, str(int(float(base))**int(expo_num)))
-                else:
-                    if expo_num=='1':
-                        radicando_total = basic_operations.multi(radicando_total, base)
-                    else:
-                        radicando_total = basic_operations.multi(radicando_total,str(int(float(base))**int(expo_num)))
+            num, den = int(radicando[base]), int(indice) #numerador, denominador
+            inteiro = 0
+            while num>= den:
+                inteiro+=1
+                num-=den
+            if inteiro==0:
+                radicando_total = basic_operations.multi(radicando_total,str(int(base)**num))
             else:
-                coeficiente_total = basic_operations.multi(coeficiente_total, str(int(float(base))**int(expoente_temporario)))
+                expoente_temporario = basic_operations.diff(radicando[base],basic_operations.multi(str(inteiro),indice))
+
+                coeficiente_total = basic_operations.multi(coeficiente_total,str(int(base)**inteiro))
+                radicando_total = basic_operations.multi(radicando_total,str(int(base)**int(expoente_temporario)))    
+            
         #Devolvendo o objeto simplificado
         if radicando_total=='1':
             return Inteiro(coeficiente_total)
