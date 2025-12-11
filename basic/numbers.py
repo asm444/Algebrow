@@ -25,7 +25,7 @@ def raiz_latex(radicando: str, indice: str, coeficiente = '') -> str:
     return coeficiente + "\sqrt" + em_chaves(indice) + em_chaves(radicando)
 
 def logaritmo_latex(base: str, logaritimando:str, coeficiente = '')-> str:
-    """Retorna coeficiente\\log_{base}{logaritmando}"""
+    """Retorna coeficiente \log_{base}{logaritmando}"""
     return coeficiente + '\log_' + em_chaves(base) + em_chaves(logaritimando)
 
 ## Definindo Exponencial, Raiz, Logaritmo, Fração
@@ -117,7 +117,7 @@ class Logaritmo:
     #Acessando os dados internos
     def return_base(self):
         return self.base
-    def return_logaritimando(self):
+    def return_logaritmando(self):
         return self.logaritimando
     def return_coeficiente(self):
         return self.coeficiente    
@@ -127,7 +127,7 @@ class Logaritmo:
     #Modificando os dados internos
     def modify_base(self,nova_base):
         self.base = nova_base
-    def modify_logaritimando(self, novo_logaritimando):
+    def modify_logaritmando(self, novo_logaritimando):
         self.logaritimando = novo_logaritimando
     def modify_coeficiente(self, novo_coeficiente):
         self.coeficiente = novo_coeficiente       
@@ -212,64 +212,109 @@ def simplificar(objeto):
         return objeto
     
     elif objeto.tipo_de_numero == 'raiz': #Testar todo tipo de comportamento inesperado
+        radicando = objeto.return_radicando()
+        if radicando=='1' or radicando=='0':
+            return Inteiro(radicando)
 
-        radicando = number_to_potencia(objeto.return_radicando())
+        radicando = number_to_potencia(radicando)
         indice = objeto.return_indice()
-        coeficiente_total = '1'
-        radicando_total = '1'
-        #Verificando se radicando sai da raiz ou parte dele
-        for base in radicando.keys():
-            num, den = int(radicando[base]), int(indice) #numerador, denominador
-            inteiro = 0
-            while num>= den:
-                inteiro+=1
-                num-=den
-            if inteiro==0:
-                radicando_total = basic_operations.multi(radicando_total,str(int(base)**num))
-            else:
-                expoente_temporario = basic_operations.diff(radicando[base],basic_operations.multi(str(inteiro),indice))
-
-                coeficiente_total = basic_operations.multi(coeficiente_total,str(int(base)**inteiro))
-                radicando_total = basic_operations.multi(radicando_total,str(int(base)**int(expoente_temporario)))    
-            
-        #Devolvendo o objeto simplificado
-        if radicando_total=='1':
-            return Inteiro(coeficiente_total)
-        elif radicando_total=='0':
-            return Inteiro('0')
+        if indice=='0':
+            raise ZeroDivisionError("base^{expoente/0} está ocorrendo, alfgo de muito errado está ocorrendo.")
         else:
-            objeto.modify_radicando(radicando_total)
-            objeto.modify_coeficiente(coeficiente_total)
+            coeficiente_total = '1'
+            radicando_total = '1'
+            #Verificando se radicando sai da raiz ou parte dele
+            for base in radicando.keys():
+                num, den = int(radicando[base]), int(indice) #numerador, denominador
+                inteiro = 0
+                while num>= den:
+                    inteiro+=1
+                    num-=den
+                if inteiro==0:
+                    radicando_total = basic_operations.multi(radicando_total,str(int(base)**num))
+                else:
+                    expoente_temporario = basic_operations.diff(radicando[base],basic_operations.multi(str(inteiro),indice))
 
-            return objeto
+                    coeficiente_total = basic_operations.multi(coeficiente_total,str(int(base)**inteiro))
+                    radicando_total = basic_operations.multi(radicando_total,str(int(base)**int(expoente_temporario)))    
+                
+            #Devolvendo o objeto simplificado
+            if radicando_total=='1':
+                return Inteiro(coeficiente_total)
+            elif radicando_total=='0':
+                return Inteiro('0')
+            else:
+                objeto.modify_radicando(radicando_total)
+                objeto.modify_coeficiente(coeficiente_total)
+
+                return objeto
 
     elif objeto.tipo_de_numero == 'exponencial':
 
         base_total = '1'
-        expoente_total = '1'
-
+        
+        base = objeto.return_base()
         expoente = objeto.return_expoente()
 
-        multiplos = number_to_potencia(objeto.return_base())
-        for base in multiplos.keys():
+        if base=='1':
+            return Inteiro(objeto.coeficiente)
+        elif base=='0':
+            return Inteiro('0')
+        elif expoente=='0':
+            return Inteiro('1')
+        else:
+            multiplos = number_to_potencia(base)
+            if '1' in multiplos.values():
+                return objeto
 
-            base_total =multiplos.keys()        
-            expoente_total = basic_operations.multi(multiplos, expoente)
+            minimo = min(multiplos.values())
+            expoente_total = basic_operations.multi(minimo, expoente)
+            for base in multiplos.keys():
+                expoente_temporario = int(multiplos[base])//int(minimo)
+                if expoente_temporario==0:
+                    return objeto
+                base_total = basic_operations.multi(base_total, str(int(base)**int(expoente_temporario) ))
 
             objeto.modify_base(base_total)
             objeto.modify_expoente(expoente_total)
 
             return objeto
 
+    elif objeto.tipo_de_numero == 'logaritmo':
         
-        for i,j in multiplos.items():
-            print('base ', i,'expoente ',j)
-        
-        return 1
+        logaritmando = objeto.return_logaritmando()
+        base = objeto.return_base()
 
-        
+        logaritmando_total = '1'
+        if base=='1' or base=='0':
+            raise ValueError("A função logaritmica não é definida quando constituida com base igual a 1 ou 0.")
+        elif logaritmando=='0':
+            raise ValueError("A função logaritmica está explodindo para o infinito, logaritmando=0.")
+        elif logaritmando=='1':
+            return Inteiro('0')
+        elif logaritmando==base:
+            return Inteiro('1')
+        else:
+            multiplos = number_to_potencia(logaritmando)
+            if '1' in multiplos.values():
+                return objeto
+            
+            logaritmando_total='1'
+            coeficiente_total='1'
 
+            minimo = min(multiplos.values())
 
-        
+            for base in multiplos.keys():
+                expoente_temporario = int(multiplos[base])//int(minimo)
+                if expoente_temporario==0:
+                    return objeto
+                logaritmando_total = basic_operations.multi(logaritmando_total, str(int(base)**int(expoente_temporario) ))
 
+            coeficiente_total = basic_operations.multi(coeficiente_total, minimo)
+            if logaritmando_total==base:
+                return Inteiro(coeficiente_total)
 
+            objeto.modify_logaritmando(logaritmando_total)
+            objeto.modify_coeficiente(coeficiente_total)
+
+            return objeto
