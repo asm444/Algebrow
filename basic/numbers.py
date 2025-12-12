@@ -100,13 +100,7 @@ class Raiz:
         self.coeficiente = novo_coeficiente
 
     def numero_real(self):
-        if '/' in self.indice:
-            numerador, denominador = self.expoente.split('/')
-            numerador, denominador = float(numerador), float(denominador)
-        else:
-            numerador, denominador = float(self.expoente), 1
-
-        return basic_operations.inteiro(float(self.base)**(denominador/numerador))
+        return float(self.radicando) ** (1 / float(self.indice))
 
 class Logaritmo:
     def __init__(self, base, logaritimando, coeficiente ='1'):
@@ -134,7 +128,7 @@ class Logaritmo:
 
     def numero_real(self):
         from math import log
-        return log(self.logaritimando, self.logaritimando)
+        return log(float(self.base), float(self.logaritimando))
 
     def representacao_latex(self):
         if self.coeficiente=='1':
