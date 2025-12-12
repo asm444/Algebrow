@@ -66,7 +66,14 @@ class Exponencial:
             return exponencial_latex(self.base, self.expoente, self.coeficiente)
 
     def numero_real(self):
-        return basic_operations.inteiro(float(self.base)**float(self.expoente))
+        return basic_operations.Racional(float(self.base)**float(self.expoente))
+
+    def simplificar(self):
+        resultado = simplificar(self)
+
+        if resultado is not self:
+            return resultado
+        return self
 
 class Raiz:
     def __init__(self, indice, radicando, coeficiente ='1'):
@@ -101,6 +108,12 @@ class Raiz:
 
     def numero_real(self):
         return float(self.radicando) ** (1 / float(self.indice))
+    def simplificar(self):
+        resultado = simplificar(self)
+
+        if resultado is not self:
+            return resultado
+        return self
 
 class Logaritmo:
     def __init__(self, base, logaritimando, coeficiente ='1'):
@@ -135,40 +148,47 @@ class Logaritmo:
             return logaritmo_latex(self.base, self.logaritimando)
         else:
             return logaritmo_latex(self.base, self.logaritimando, self.coeficiente)
+    def simplificar(self):
+        resultado = simplificar(self)
+
+        if resultado is not self:
+            return resultado
+        return self
 
 class Racional:
-    def __init__(self, numerador, denominador, coeficiente ='1'):
-        self.numerador = numerador
-        self.denominador = denominador
-        self.tipo_de_numero = 'fracao'
-        self.coeficiente = coeficiente
+    def __init__(self, numero):
+        if '/' in numero:
+            self.numerador, self.denominador = numero.split('/')
+            self.coeficiente = self.numerador
+        else:
+            self.numerador, self.denominador = numero, '1'
+            self.coeficiente = numero
+        self.tipo_de_numero = 'racional'
     
     #Acessando os dados internos
     def return_numerador(self):
         return self.numerador
     def return_denominador(self):
         return self.denominador
+    def return_coeficiente(self):
+        return self.coeficiente
 
     #Modificando os dados internos
-    def modify_numerador(self,nova_numerador):
-        self.numerador = nova_numerador
+    def modify_numerador(self,novo_numerador):
+        self.numerador = novo_numerador
+        self.coeficiente = novo_numerador
     def modify_denominador(self, novo_denominador):
         self.denominador = novo_denominador
-    
+    def modify_coeficiente(self, novo_numero):
+        return Racional(novo_numero)
     def representacao_latex(self):
-        return frac_latex(self.numerador, self.denominador)
+        if self.denominador!='1':
+            return frac_latex(self.numerador, self.denominador)
+        else:
+            return self.numerador
 
     def numero_real(self):
         return basic_operations.div(self.numerador,self.denominador)
-
-class Inteiro:
-    def __init__(self, number):
-        self.number = number
-        self.tipo_de_numero = 'inteiro'
-    def representacao_latex(self):
-        return self.number
-    def number(self):
-        return self.number
     
 ### Capacidade de potencia (36 -> 6^2; 144)
 def number_to_potencia(number):
@@ -192,23 +212,24 @@ def number_to_potencia(number):
 
     return multiplos_contados
 
-number_to_potencia('64')
-### Simplificação
+### Simplificando Exponencial, Raiz, Logaritmo, Fração
 def simplificar(objeto):
 
-    if objeto.tipo_de_numero =='fracao':
-        fracao = basic_operations.reduz_fracao(objeto.numerador+'/'+objeto.denominador)
-        numerador, denominador = fracao.split('/')
+    if objeto.tipo_de_numero =='racional':
+        numerador, denominador = objeto.return_numerador(), objeto.return_denominador()
+        if denominador=='1':
+            return objeto
+        elif denominador=='0':
+            raise ZeroDivisionError("Divisão por zero aqui!!!")
+        else:
+            fracao = basic_operations.reduz_fracao(numerador+'/'+denominador)
 
-        objeto.modify_numerador(numerador)
-        objeto.modify_denominador(denominador)
-
-        return objeto
+            return Racional(fracao)
     
     elif objeto.tipo_de_numero == 'raiz': #Testar todo tipo de comportamento inesperado
         radicando = objeto.return_radicando()
         if radicando=='1' or radicando=='0':
-            return Inteiro(radicando)
+            return Racional(radicando)
 
         radicando = number_to_potencia(radicando)
         indice = objeto.return_indice()
@@ -234,9 +255,9 @@ def simplificar(objeto):
                 
             #Devolvendo o objeto simplificado
             if radicando_total=='1':
-                return Inteiro(coeficiente_total)
+                return Racional(coeficiente_total)
             elif radicando_total=='0':
-                return Inteiro('0')
+                return Racional('0')
             else:
                 objeto.modify_radicando(radicando_total)
                 objeto.modify_coeficiente(coeficiente_total)
@@ -251,11 +272,11 @@ def simplificar(objeto):
         expoente = objeto.return_expoente()
 
         if base=='1':
-            return Inteiro(objeto.coeficiente)
+            return Racional(objeto.coeficiente)
         elif base=='0':
-            return Inteiro('0')
+            return Racional('0')
         elif expoente=='0':
-            return Inteiro('1')
+            return Racional('1')
         else:
             multiplos = number_to_potencia(base)
             if '1' in multiplos.values():
@@ -285,9 +306,9 @@ def simplificar(objeto):
         elif logaritmando=='0':
             raise ValueError("A função logaritmica está explodindo para o infinito, logaritmando=0.")
         elif logaritmando=='1':
-            return Inteiro('0')
+            return Racional('0')
         elif logaritmando==base:
-            return Inteiro('1')
+            return Racional('1')
         else:
             multiplos = number_to_potencia(logaritmando)
             if '1' in multiplos.values():
@@ -306,7 +327,7 @@ def simplificar(objeto):
 
             coeficiente_total = basic_operations.multi(coeficiente_total, minimo)
             if logaritmando_total==base:
-                return Inteiro(coeficiente_total)
+                return Racional(coeficiente_total)
 
             objeto.modify_logaritmando(logaritmando_total)
             objeto.modify_coeficiente(coeficiente_total)

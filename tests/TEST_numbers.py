@@ -98,6 +98,27 @@ class Simplificao(unittest.TestCase):
         with self.assertRaises(ValueError):
             simplificar(Logaritmo('151','0'))
 
+    ##Testando simplificação de logaritmos
+    def test_simplificar_racional_sem_fracao(self):
+
+        self.assertEqual(simplificar(Racional('9')).representacao_latex(),  "9")
+        self.assertEqual(simplificar(Racional('0')).representacao_latex(), "0")
+
+    def test_simplificar_racional_com_fracao_sem_reducao(self):
+
+        self.assertEqual(simplificar(Racional('2/3')).representacao_latex(),  "\\frac{2}{3}")
+        self.assertEqual(simplificar(Racional('19/31')).representacao_latex(), "\\frac{19}{31}")
+
+    def test_simplificar_racional_com_fracao_redutivel(self):
+
+        self.assertEqual(simplificar(Racional('3/9')).representacao_latex(),  "\\frac{1}{3}")
+        self.assertEqual(simplificar(Racional('24/36')).representacao_latex(), "\\frac{2}{3}")
+
+    def test_simplificar_logaritmando_um_ou_zero(self):
+
+        with self.assertRaises(ZeroDivisionError):
+            simplificar(Racional('5/0'))
+
 
 
         
