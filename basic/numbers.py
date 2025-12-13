@@ -172,6 +172,11 @@ class Racional:
         return self.denominador
     def return_coeficiente(self):
         return self.coeficiente
+    def return_number(self):
+        if self.denominador!='1':
+            return self.numerador + '/' + self.denominador
+        else:
+            return self.coeficiente
 
     #Modificando os dados internos
     def modify_numerador(self,novo_numerador):
@@ -236,7 +241,7 @@ def simplificar(objeto):
         if indice=='0':
             raise ZeroDivisionError("base^{expoente/0} está ocorrendo, alfgo de muito errado está ocorrendo.")
         else:
-            coeficiente_total = '1'
+            coeficiente_total = objeto.coeficiente
             radicando_total = '1'
             #Verificando se radicando sai da raiz ou parte dele
             for base in radicando.keys():
@@ -315,7 +320,7 @@ def simplificar(objeto):
                 return objeto
             
             logaritmando_total='1'
-            coeficiente_total='1'
+            coeficiente_total= objeto.coeficiente
 
             minimo = min(multiplos.values())
 
