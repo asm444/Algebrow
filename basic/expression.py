@@ -114,6 +114,24 @@ def multiplicacao(numero1, numero2):
 
                     return numero1
                 #Aqui fica perigoso, não para mim
-                if float(numero2.expoente)*log(float(numero2.base))<16: 
-                    #Aqui trata o limite de precisão do python que pode gerar erro no calculo se o número for grande de mais
-                    pass
+                #Aqui trata o limite de precisão do python que pode gerar 
+                # erro no calculo se o número for grande de mais
+                if float(numero2.expoente)*log(float(numero2.base))<10 :
+                    if float(numero1.expoente)*log(float(numero1.base))<10:
+                        numero3 = float(float(numero1.base)**float(numero1.expoente))
+                        numero4 = float(float(numero1.base)**float(numero1.expoente))
+                        if numero3>numero4:
+                            numero1=numbers.Racional(numero3)
+                        else:
+                            numero2=numbers.Racional(numero4)
+                    return Expressao(items=[numero1, numero2])
+                    
+                elif float(numero1.expoente)*log(float(numero1.base))<10 :
+                    if float(numero2.expoente)*log(float(numero2.base))<10:
+                        numero3 = float(float(numero1.base)**float(numero1.expoente))
+                        numero4 = float(float(numero1.base)**float(numero1.expoente))
+                        if numero3>numero4:
+                            numero1=numbers.Racional(numero3)
+                        else:
+                            numero2=numbers.Racional(numero4)
+                    return Expressao(items=[numero1, numero2])
