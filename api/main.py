@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from api.routers import calcular
+from api.routers import calcular, grafico
 
 app = FastAPI(
     title="Algebrow API",
@@ -17,6 +17,7 @@ app.add_middleware(
 )
 
 app.include_router(calcular.router, prefix="/api", tags=["calcular"])
+app.include_router(grafico.router, prefix="/api", tags=["grafico"])
 
 
 @app.get("/")

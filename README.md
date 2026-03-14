@@ -251,11 +251,87 @@ Algebrow/
 - Segurança: timeout 10s, cancelamento de requests, sem innerHTML
 - 137 testes passando
 
-**Ambição futura (Fase 2+):**
-- Polinômios, equações de 1º/2º grau, sistemas lineares
-- Funções e gráficos 2D (SVG puro)
-- Cálculo: derivadas, integrais, limites
-- Álgebra linear: matrizes, determinantes, autovalores
+**Ambição futura:**
+- Suporte a números imaginários
+- Integrar equações no solver/API
+
+---
+
+### Fase 2 — Álgebra
+
+**O que foi implementado:**
+- Classe `Polinomio` com aritmética exata (soma, sub, multi, divisão longa)
+  - Fatoração por raízes racionais (teorema ±p/q)
+  - Bhaskara para grau 2, divisão sintética para grau 3+
+- `Equacao1Grau`: resolve `ax + b = 0` com passo-a-passo
+- `Equacao2Grau`: Bhaskara completo (discriminante, raiz dupla, raízes com √)
+- `SistemaLinear`: eliminação de Gauss para 2×2 e 3×3
+  - Classificação: determinado / indeterminado / impossível
+- `Inequacao1Grau`: resolve com inversão de sinal automática
+- Parser expandido: variáveis (x, y), equações (=), inequações (>, <)
+  - Multiplicação implícita: `2x` → `2*x`
+
+**O que deu certo:**
+- `x²-5x+6=0` → `x₁=2, x₂=3` com passos detalhados
+- `x³-6x²+11x-6` fatorado em `(x-1)(x-2)(x-3)`
+- Sistema `x+y=5, x-y=1` → `x=3, y=2` com Gauss
+- 50 testes de álgebra passando
+
+**Ambição futura:**
+- Integrar polinômios e equações no solver/API
+- Equações de grau 3+ (Cardano)
+- Sistemas não-lineares
+
+---
+
+### Fase 3 — Funções e Gráficos
+
+**O que foi implementado:**
+- 4 classes de funções elementares com interface comum:
+  - `FuncaoLinear(a, b)`: zeros, inversa, avaliação
+  - `FuncaoQuadratica(a, b, c)`: vértice, zeros (via Bhaskara), concavidade
+  - `FuncaoExponencial(a, b)`: domínio, imagem, assíntotas
+  - `FuncaoLogaritmica(a, b)`: domínio, zeros
+- Gerador de pontos para gráficos 2D (`gerar_pontos`)
+  - Aceita expressões como `"x^2 - 4"` ou callables
+  - Detecção de descontinuidades e assíntotas
+  - Multiplicação implícita (`2x`, `3x^2`)
+- API `POST /api/grafico` com schemas Pydantic
+- `detectar_assintotas_verticais` com busca binária
+
+**O que deu certo:**
+- `1/x` detecta descontinuidade em x=0
+- `x²` gera parábola com todos os pontos positivos
+- 57 testes de funções e gráficos passando
+- 253 testes total
+
+**Ambição futura:**
+- Trigonometria: sen, cos, tan com propriedades
+- Componente SVG no frontend para plotar gráficos
+- Composição de funções (f∘g)
+
+---
+
+### Auditoria de Qualidade
+
+**Segurança:**
+- Parser com limite de profundidade (50 níveis)
+- Input limitado a 500 caracteres
+- Catch genérico na API sem exposição de detalhes
+- CORS restrito, sem innerHTML no frontend
+- Timeout 10s e cancelamento de requests
+
+**Desempenho:**
+- Cache de primos.txt no module-level (1 leitura)
+- `math.gcd` substitui recursão em `reduz_fracao`
+- Trial division O(√n) em `number_to_potencia`
+- Testes 5x mais rápidos (0.34s → 0.07s)
+
+**Inteligência:**
+- `0^0` → indefinido, `√(-n)` → erro, `(-n)^m` → erro
+- Expoente 1 simplifica, coeficiente -1 renderiza como "-"
+- Passos nível 4 implementados (divisão euclidiana)
+- MDC explícito na simplificação de frações
 
 ---
 
@@ -265,8 +341,8 @@ Algebrow/
 |------|--------|-----------|
 | 0 | ✅ Concluída | Correção de bugs, refatoração, infraestrutura |
 | 1 | ✅ Concluída | Web app mínimo: parser + solver + API + frontend |
-| 2 | 🔲 Planejada | Álgebra: polinômios, equações, sistemas |
-| 3 | 🔲 Planejada | Funções e gráficos 2D |
+| 2 | ✅ Concluída | Álgebra: polinômios, equações, sistemas |
+| 3 | ✅ Concluída | Funções elementares e gráficos 2D |
 | 4 | 🔲 Planejada | Cálculo: derivadas, integrais, limites |
 | 5 | 🔲 Planejada | Álgebra linear: matrizes, determinantes |
 
