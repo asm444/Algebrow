@@ -3,9 +3,14 @@
 import math
 import pytest
 from engine.calculo.arvore import NoExpressao, num, var, op, func
-from engine.calculo.derivada import derivar, simplificar_no
+from engine.calculo.derivada import derivar, derivar_ordem, derivada_implicita, simplificar_no
 from engine.calculo.integral import integrar
-from engine.calculo.limite import limite
+from engine.calculo.limite import limite, limite_lateral, limite_infinito
+from engine.calculo.aplicacoes import (
+    taxa_variacao, encontrar_criticos, encontrar_inflexao,
+    teorema_valor_medio, esboco_curva, comprimento_arco,
+    volume_disco,
+)
 from engine.basic.passo import Historico
 
 
@@ -311,3 +316,278 @@ class TestAvaliacao:
     def test_avaliar_exp(self):
         expr = func('exp', num('0'))
         assert abs(expr.avaliar({}) - 1.0) < 1e-10
+
+
+# ============================================================
+# Testes de derivada — funcoes inversas trigonometricas
+# ============================================================
+
+class TestDerivadaInversas:
+    def test_derivada_arcsin(self):
+        # d/dx(arcsin(x)) = 1/sqrt(1-x^2)
+        expr = func('arcsin', var('x'))
+        result = derivar(expr, 'x')
+        for val in [0.0, 0.3, 0.5, -0.3]:
+            expected = 1.0 / math.sqrt(1 - val**2)
+            got = result.avaliar({'x': val})
+            assert abs(got - expected) < 1e-8, f"x={val}: esperado {expected}, obteve {got}"
+
+    def test_derivada_arccos(self):
+        # d/dx(arccos(x)) = -1/sqrt(1-x^2)
+        expr = func('arccos', var('x'))
+        result = derivar(expr, 'x')
+        for val in [0.0, 0.3, 0.5, -0.3]:
+            expected = -1.0 / math.sqrt(1 - val**2)
+            got = result.avaliar({'x': val})
+            assert abs(got - expected) < 1e-8, f"x={val}: esperado {expected}, obteve {got}"
+
+    def test_derivada_arctan(self):
+        # d/dx(arctan(x)) = 1/(1+x^2)
+        expr = func('arctan', var('x'))
+        result = derivar(expr, 'x')
+        for val in [0.0, 1.0, 2.0, -1.0]:
+            expected = 1.0 / (1 + val**2)
+            got = result.avaliar({'x': val})
+            assert abs(got - expected) < 1e-8, f"x={val}: esperado {expected}, obteve {got}"
+
+
+# ============================================================
+# Testes de derivada de ordem superior
+# ============================================================
+
+class TestDerivadaOrdemSuperior:
+    def test_segunda_derivada_x_cubo(self):
+        # d²/dx²(x³) = 6x
+        expr = op('^', var('x'), num('3'))
+        result = derivar_ordem(expr, 'x', 2)
+        for val in [1, 2, -1, 0.5]:
+            expected = 6 * val
+            got = result.avaliar({'x': val})
+            assert abs(got - expected) < 1e-8, f"x={val}: esperado {expected}, obteve {got}"
+
+    def test_terceira_derivada_x_cubo(self):
+        # d³/dx³(x³) = 6
+        expr = op('^', var('x'), num('3'))
+        result = derivar_ordem(expr, 'x', 3)
+        got = result.avaliar({'x': 7})
+        assert abs(got - 6.0) < 1e-8
+
+    def test_segunda_derivada_sin(self):
+        # d²/dx²(sin(x)) = -sin(x)
+        expr = func('sin', var('x'))
+        result = derivar_ordem(expr, 'x', 2)
+        for val in [0, 1, math.pi / 4]:
+            expected = -math.sin(val)
+            got = result.avaliar({'x': val})
+            assert abs(got - expected) < 1e-8
+
+
+# ============================================================
+# Testes de derivada implicita
+# ============================================================
+
+class TestDerivadaImplicita:
+    def test_circulo(self):
+        # x² + y² - 1 = 0 => dy/dx = -x/y
+        F = op('+', op('+', op('^', var('x'), num('2')), op('^', var('y'), num('2'))), num('-1'))
+        result = derivada_implicita(F, 'x', 'y')
+        # Em (x=0.6, y=0.8): dy/dx = -0.6/0.8 = -0.75
+        got = result.avaliar({'x': 0.6, 'y': 0.8})
+        assert abs(got - (-0.75)) < 1e-8
+
+
+# ============================================================
+# Testes de integracao por substituicao
+# ============================================================
+
+class TestIntegracaoSubstituicao:
+    def test_2x_cos_x2(self):
+        # ∫ 2x·cos(x²) dx = sin(x²) + C
+        expr = op('*', op('*', num('2'), var('x')), func('cos', op('^', var('x'), num('2'))))
+        result = integrar(expr, 'x')
+        # Avaliar: sin(x²) em x=1 => sin(1) ≈ 0.8414...
+        got = result.avaliar({'x': 1, 'C': 0})
+        expected = math.sin(1)
+        assert abs(got - expected) < 1e-6, f"esperado {expected}, obteve {got}"
+
+
+# ============================================================
+# Testes de integracao por partes
+# ============================================================
+
+class TestIntegracaoPartes:
+    def test_x_exp_x(self):
+        # ∫ x·e^x dx = x·e^x - e^x + C = e^x(x-1) + C
+        expr = op('*', var('x'), func('exp', var('x')))
+        result = integrar(expr, 'x')
+        # Em x=1: e^1(1-1) = 0, em x=2: e^2(2-1) = e^2
+        got = result.avaliar({'x': 1, 'C': 0})
+        expected = 1 * math.exp(1) - math.exp(1)  # = 0
+        assert abs(got - expected) < 1e-6, f"x=1: esperado {expected}, obteve {got}"
+
+        got2 = result.avaliar({'x': 2, 'C': 0})
+        expected2 = 2 * math.exp(2) - math.exp(2)  # = e^2
+        assert abs(got2 - expected2) < 1e-6, f"x=2: esperado {expected2}, obteve {got2}"
+
+
+# ============================================================
+# Testes de limite lateral
+# ============================================================
+
+class TestLimiteLateral:
+    def test_limite_lateral_1_sobre_x_direita(self):
+        # lim x->0+ (1/x) = inf
+        expr = op('/', num('1'), var('x'))
+        result = limite_lateral(expr, 'x', '0', 'direita')
+        assert result == 'inf'
+
+    def test_limite_lateral_1_sobre_x_esquerda(self):
+        # lim x->0- (1/x) = -inf
+        expr = op('/', num('1'), var('x'))
+        result = limite_lateral(expr, 'x', '0', 'esquerda')
+        assert result == '-inf'
+
+    def test_limite_lateral_convergente(self):
+        # lim x->1+ (x^2) = 1
+        expr = op('^', var('x'), num('2'))
+        result = limite_lateral(expr, 'x', '1', 'direita')
+        assert result == '1'
+
+
+# ============================================================
+# Testes de limite no infinito
+# ============================================================
+
+class TestLimiteInfinito:
+    def test_limite_1_sobre_x_infinito(self):
+        # lim x->+inf (1/x) = 0
+        expr = op('/', num('1'), var('x'))
+        result = limite_infinito(expr, 'x', '+inf')
+        assert result == '0'
+
+    def test_limite_1_sobre_x_menos_infinito(self):
+        # lim x->-inf (1/x) = 0
+        expr = op('/', num('1'), var('x'))
+        result = limite_infinito(expr, 'x', '-inf')
+        assert result == '0'
+
+    def test_limite_x2_infinito(self):
+        # lim x->+inf (x^2) = inf
+        expr = op('^', var('x'), num('2'))
+        result = limite_infinito(expr, 'x', '+inf')
+        assert result == 'inf'
+
+    def test_limite_via_funcao_principal(self):
+        # limite() com valor='inf' deve redirecionar
+        expr = op('/', num('1'), var('x'))
+        result = limite(expr, 'x', 'inf')
+        assert result == '0'
+
+
+# ============================================================
+# Testes de maximos e minimos
+# ============================================================
+
+class TestMaximosMinimos:
+    def test_x3_menos_3x(self):
+        # f(x) = x³ - 3x
+        # f'(x) = 3x² - 3 = 0 => x = ±1
+        # f''(1) = 6 > 0 => minimo em x=1, f(1) = -2
+        # f''(-1) = -6 < 0 => maximo em x=-1, f(-1) = 2
+        expr = op('-', op('^', var('x'), num('3')), op('*', num('3'), var('x')))
+        criticos = encontrar_criticos(expr, 'x', (-5, 5))
+
+        tipos = {c['tipo'] for c in criticos}
+        assert 'maximo' in tipos
+        assert 'minimo' in tipos
+
+        for c in criticos:
+            if c['tipo'] == 'minimo':
+                assert abs(c['x'] - 1.0) < 1e-4
+                assert abs(c['fx'] - (-2.0)) < 1e-4
+            if c['tipo'] == 'maximo':
+                assert abs(c['x'] - (-1.0)) < 1e-4
+                assert abs(c['fx'] - 2.0) < 1e-4
+
+
+# ============================================================
+# Testes de pontos de inflexao
+# ============================================================
+
+class TestInflexao:
+    def test_x3_menos_3x(self):
+        # f(x) = x³ - 3x
+        # f''(x) = 6x = 0 => x = 0
+        # f(0) = 0
+        expr = op('-', op('^', var('x'), num('3')), op('*', num('3'), var('x')))
+        inflexoes = encontrar_inflexao(expr, 'x', (-5, 5))
+
+        assert len(inflexoes) >= 1
+        # Deve ter inflexao em x = 0
+        encontrou = False
+        for inf in inflexoes:
+            if abs(inf['x']) < 1e-4:
+                encontrou = True
+                assert abs(inf['fx']) < 1e-4
+        assert encontrou, f"Nao encontrou inflexao em x=0. Inflexoes: {inflexoes}"
+
+    def test_x4(self):
+        # f(x) = x^4 => f''(x) = 12x^2 = 0 em x=0
+        # Mas f''(x) >= 0 sempre, entao NAO eh inflexao (nao muda concavidade)
+        expr = op('^', var('x'), num('4'))
+        inflexoes = encontrar_inflexao(expr, 'x', (-5, 5))
+        # x=0 nao deve ser inflexao
+        for inf in inflexoes:
+            assert abs(inf['x']) > 1e-4, "x^4 nao deve ter inflexao em x=0"
+
+
+# ============================================================
+# Testes do teorema do valor medio
+# ============================================================
+
+class TestTeoremaValorMedio:
+    def test_x2_em_0_2(self):
+        # f(x) = x², [0, 2]
+        # f(2)-f(0) / (2-0) = 4/2 = 2
+        # f'(x) = 2x = 2 => x = 1
+        expr = op('^', var('x'), num('2'))
+        cs = teorema_valor_medio(expr, 'x', 0, 2)
+        assert len(cs) >= 1
+        assert any(abs(c - 1.0) < 1e-4 for c in cs)
+
+
+# ============================================================
+# Testes de esboco de curva
+# ============================================================
+
+class TestEsbocoCurva:
+    def test_x3_menos_3x(self):
+        expr = op('-', op('^', var('x'), num('3')), op('*', num('3'), var('x')))
+        esboco = esboco_curva(expr, 'x', (-5, 5))
+
+        assert 'zeros' in esboco
+        assert 'criticos' in esboco
+        assert 'inflexao' in esboco
+
+        # Deve ter zeros em aproximadamente -sqrt(3), 0, sqrt(3)
+        assert len(esboco['zeros']) >= 3
+
+
+# ============================================================
+# Testes de volume e comprimento de arco
+# ============================================================
+
+class TestVolumeComprimento:
+    def test_volume_disco_x(self):
+        # V = pi * ∫_0^1 x^2 dx = pi * 1/3 ≈ 1.0472
+        expr = var('x')
+        vol = volume_disco(expr, 'x', 0, 1)
+        expected = math.pi / 3
+        assert abs(vol - expected) < 1e-3, f"esperado {expected}, obteve {vol}"
+
+    def test_comprimento_arco_reta(self):
+        # f(x) = x em [0, 1] => L = sqrt(2)
+        expr = var('x')
+        comp = comprimento_arco(expr, 'x', 0, 1)
+        expected = math.sqrt(2)
+        assert abs(comp - expected) < 1e-3, f"esperado {expected}, obteve {comp}"
