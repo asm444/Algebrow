@@ -3,7 +3,7 @@
   <img src="https://img.shields.io/badge/react-18+-61DAFB?style=for-the-badge&logo=react&logoColor=black" />
   <img src="https://img.shields.io/badge/fastapi-0.100+-009688?style=for-the-badge&logo=fastapi&logoColor=white" />
   <img src="https://img.shields.io/badge/zero_deps-engine-ff6b6b?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/testes-331_passando-brightgreen?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/testes-466_passando-brightgreen?style=for-the-badge" />
 </p>
 
 # Algebrow
@@ -400,16 +400,69 @@ Algebrow/
 
 ---
 
+### Fase 6 — Números Complexos e Análise Complexa
+
+**Que contas resolve:**
+- Aritmética complexa: `(3+2i) × (1-i)`, `(4+2i) ÷ (1+i) = 3-i`
+- Forma polar: `z = r·e^(iθ)`, conversão retangular ↔ polar
+- Raízes n-ésimas: raízes cúbicas de 1, raízes quadradas de i
+- Fórmula de Euler: `e^(iπ) = -1`
+- Verificação de Cauchy-Riemann (funções holomorfas)
+- Resíduo em polo simples
+- Transformada de Laplace: `L{sin(ωt)} = ω/(s²+ω²)`
+- Transformada inversa e resolução de EDOs via Laplace
+
+---
+
+### Fase 7 — Cálculo Completo (Guidorizzi Vol 1-4)
+
+**Que contas resolve:**
+- **Derivadas avançadas:** arcsin, arccos, arctan, regra da cadeia compostas, derivada implícita, ordem N
+- **Integrais:** substituição (∫2x·cos(x²)dx), por partes (LIATE), frações parciais, trigonométrica
+- **Limites:** laterais, no infinito, formas indeterminadas (0·∞, 0^0, 1^∞)
+- **Aplicações:** máx/mín (teste 2ª derivada), inflexão, TVM, esboço de curvas, sólidos de revolução, comprimento de arco
+- **Séries:** Taylor/Maclaurin, geométrica, série p, testes de convergência (razão, raiz, comparação)
+- **Sequências:** limite, raio de convergência
+- **EDOs:** separável, linear 1ª ordem (fator integrante), 2ª ordem coef constante (Bhaskara), Bernoulli, exata, Euler numérico
+- **Multivariável:** gradiente, divergente, rotacional, laplaciano, jacobiana, hessiana, Lagrange
+
+---
+
+### Fase 9 — Geometria Diferencial
+
+**Que contas resolve:**
+- **Curvas:** curvatura κ, torção τ, triedro de Frenet-Serret (T, N, B)
+- **Superfícies:** primeira e segunda forma fundamental, curvatura gaussiana K, curvatura média H
+- **Exemplos:** κ do círculo = 1, κ e τ da hélice, K da esfera = 1
+- **Álgebra vetorial simbólica:** produto escalar, vetorial, norma
+
+---
+
 ## Roadmap
 
+### Plataforma Base (Concluída)
 | Fase | Status | Descrição |
 |------|--------|-----------|
-| 0 | ✅ Concluída | Correção de bugs, refatoração, infraestrutura |
-| 1 | ✅ Concluída | Web app mínimo: parser + solver + API + frontend |
-| 2 | ✅ Concluída | Álgebra: polinômios, equações, sistemas |
-| 3 | ✅ Concluída | Funções elementares e gráficos 2D |
-| 4 | ✅ Concluída | Cálculo: derivadas, integrais, limites |
-| 5 | ✅ Concluída | Álgebra linear: matrizes, determinantes, autovalores |
+| 0 | ✅ | Correção de bugs, refatoração, infraestrutura |
+| 1 | ✅ | Web app: parser + solver + API + frontend React/KaTeX |
+| 2 | ✅ | Álgebra: polinômios, equações, sistemas, inequações |
+| 3 | ✅ | Funções elementares e gráficos 2D |
+| 4-7 | ✅ | Cálculo completo (Guidorizzi Vol 1-4) |
+| 5 | ✅ | Álgebra linear: matrizes, determinantes, autovalores |
+
+### Física-Matemática (Arfken + Butkov + Wald)
+| Fase | Status | Descrição |
+|------|--------|-----------|
+| 6 | ✅ | Complexos: aritmética, polar, Euler, Laplace |
+| 8 | 🔲 | Funções especiais: Gamma, Bessel, Legendre, Hermite |
+| 9 | ✅ | Geometria diferencial: curvas, superfícies, Frenet |
+| 10 | 🔲 | Sturm-Liouville, funções de Green |
+| 11 | 🔲 | PDEs: calor, onda, Laplace, separação de variáveis |
+| 12 | 🔲 | Fourier: séries, transformada, DFT |
+| 13 | 🔲 | Cálculo variacional: Euler-Lagrange |
+| 14 | 🔲 | Equações integrais: Fredholm, Volterra |
+| 15 | 🔲 | Tensores: métrico, Christoffel, Riemann (Wald) |
+| 16 | 🔲 | Teoria de grupos: representações, SO(3), SU(2) |
 
 ---
 
@@ -417,12 +470,12 @@ Algebrow/
 
 | Métrica | Valor |
 |---------|-------|
-| Testes | 331 passando |
-| Tempo de testes | 0.34s |
-| Commits | 18+ |
-| Módulos do engine | 16 arquivos Python |
+| Testes | 466 passando |
+| Tempo de testes | 0.49s |
+| Commits | 25+ |
+| Módulos do engine | 30+ arquivos Python |
 | Dependências do engine | 0 (zero!) |
-| Linhas de código (engine) | ~3500 |
+| Linhas de código (engine) | ~8000 |
 
 ---
 
