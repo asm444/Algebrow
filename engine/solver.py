@@ -11,6 +11,7 @@ from engine.basic.numeros import (
 )
 from engine.basic.expressao import Expressao
 from engine.basic import operacoes_basicas as ops
+import math
 
 
 class ResultadoCalculo:
@@ -142,12 +143,26 @@ class Solver:
             ))
 
             # Passo: Detalhar cada fator
+            fatores_extraidos = []
             for base, expoente in fatores.items():
                 exp_int = int(expoente)
                 idx_int = int(indice)
+
+                # Passo nível 4: divisão euclidiana do expoente pelo índice
+                historico.adicionar(Passo(
+                    nivel=4,
+                    descricao=f'Divisão euclidiana de {base}^{{{expoente}}}',
+                    latex_antes=f'{base}^{{{expoente}}}',
+                    latex_depois=f'{expoente} \\div {indice} = {exp_int // idx_int} \\text{{ resto }} {exp_int % idx_int}',
+                    regra='divisao_euclidiana',
+                    justificativa=f'{base}^{{{expoente}}} → divido pelo índice {indice}',
+                    metodo=f'{base}^{{{expoente}}} → divido pelo índice {indice}'
+                ))
+
                 if exp_int >= idx_int:
                     sai = exp_int // idx_int
                     resta = exp_int % idx_int
+                    fatores_extraidos.append((base, sai))
                     historico.adicionar(Passo(
                         nivel=3,
                         descricao=f'Extrair {base} da raiz',
@@ -157,6 +172,23 @@ class Solver:
                         justificativa=f'Expoente {expoente} ÷ índice {indice} = {sai} (inteiro) + {resta} (resto)',
                         metodo=f'Se expoente ≥ índice, o fator sai da raiz elevado a expoente÷índice'
                     ))
+
+            # Passo nível 3: Mostrar multiplicação dos fatores extraídos
+            if len(fatores_extraidos) > 1:
+                valores = [int(b) ** s for b, s in fatores_extraidos]
+                mult_str = ' \\times '.join(str(v) for v in valores)
+                produto = 1
+                for v in valores:
+                    produto *= v
+                historico.adicionar(Passo(
+                    nivel=3,
+                    descricao=f'Multiplicar fatores extraídos: {mult_str} = {produto}',
+                    latex_antes=mult_str,
+                    latex_depois=str(produto),
+                    regra='multiplicacao_coeficiente',
+                    justificativa='Os fatores que saíram da raiz são multiplicados para formar o coeficiente',
+                    metodo=f'{mult_str} = {produto}'
+                ))
 
         resultado = simplificar(raiz)
         latex_resultado = resultado.representacao_latex()
@@ -210,11 +242,16 @@ class Solver:
                 metodo=f'{base} = {fatoracao_str}'
             ))
 
+            # Calcular resultado concreto da potência de potência
+            resultado_pot_str = ' \\cdot '.join(
+                f'{b}^{{{int(e) * int(expoente)}}}'
+                for b, e in fatores.items()
+            )
             historico.adicionar(Passo(
                 nivel=3,
                 descricao='Aplicar propriedade da potência de potência',
                 latex_antes=f'({fatoracao_str})^{{{expoente}}}',
-                latex_depois='',
+                latex_depois=resultado_pot_str,
                 regra='potencia_de_potencia',
                 justificativa='(aⁿ)ᵐ = aⁿᵐ — multiplicar expoentes',
                 metodo='Multiplicar cada expoente da fatoração pelo expoente externo'
@@ -315,18 +352,22 @@ class Solver:
     def _simplificar_racional(self, racional, historico):
         """Simplifica um racional com passos."""
         latex_original = racional.representacao_latex()
+        num = int(racional.return_numerador())
+        den = int(racional.return_denominador())
+        mdc = math.gcd(abs(num), abs(den))
+
         resultado = simplificar(racional)
         latex_resultado = resultado.representacao_latex()
 
         if latex_original != latex_resultado:
             historico.adicionar(Passo(
                 nivel=2,
-                descricao='Simplificar fração',
+                descricao=f'Simplificar fração pelo MDC = {mdc}',
                 latex_antes=latex_original,
                 latex_depois=latex_resultado,
                 regra='simplificacao_fracao',
                 justificativa='Dividir numerador e denominador pelo MDC',
-                metodo='Encontrar divisores comuns e reduzir'
+                metodo=f'{num} ÷ {mdc} = {num//mdc}, {den} ÷ {mdc} = {den//mdc}'
             ))
 
         return resultado

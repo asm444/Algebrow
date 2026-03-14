@@ -118,10 +118,27 @@ class Simplificao(unittest.TestCase):
         with self.assertRaises(ZeroDivisionError):
             simplificar(Racional('5/0'))
 
+    # Testes de edge cases — validações de domínio
+    def test_0_elevado_0_indefinido(self):
+        with self.assertRaises(ValueError):
+            simplificar(Exponencial('0','0'))
+
+    def test_raiz_negativa(self):
+        with self.assertRaises(ValueError):
+            simplificar(Raiz('2','-4'))
+
+    def test_base_negativa_exponencial(self):
+        with self.assertRaises(ValueError):
+            simplificar(Exponencial('-2','3'))
+
+    def test_log_base_negativa(self):
+        with self.assertRaises(ValueError):
+            simplificar(Logaritmo('-2','8'))
+
+    def test_expoente_1(self):
+        self.assertEqual(simplificar(Exponencial('5','1')), Racional('5'))
 
 
-        
-           
 if __name__ == "__main__":
     progress_bar.progress_bar(Simplificao)
     unittest.main()

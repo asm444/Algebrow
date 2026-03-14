@@ -171,6 +171,16 @@ def multiplicacao(numero1, numero2):
         if n1.return_base() == n2.return_base():
             novo_exp = basic_operations.soma(n1.return_expoente(), n2.return_expoente())
             return numbers.Exponencial(n1.return_base(), novo_exp, coef)
+        # Bases diferentes: tentar calcular numericamente se possível
+        try:
+            b1, e1 = int(n1.return_base()), int(n1.return_expoente())
+            b2, e2 = int(n2.return_base()), int(n2.return_expoente())
+            if b1 > 0 and b2 > 0 and e1 >= 0 and e2 >= 0 and b1**e1 * b2**e2 < 10**15:
+                produto = basic_operations.multi(str(b1**e1), str(b2**e2))
+                return numbers.Racional(basic_operations.multi(coef, produto))
+        except (ValueError, OverflowError):
+            pass
+        # TODO: manter como Expressao para casos não calculáveis
         return Expressao(termos=[numbers.Exponencial(n1.return_base(), n1.return_expoente(), coef),
                                  numbers.Exponencial(n2.return_base(), n2.return_expoente(), '1')])
 

@@ -14,18 +14,24 @@ def frac_latex(numerador: str, denominador: str) -> str:
     return "\\frac" + em_chaves(numerador) + em_chaves(denominador)
 
 def exponencial_latex(base: str, expoente: str, coeficiente = ''):
+    if coeficiente == '-1':
+        coeficiente = '-'
     if '/' in base:
         numerador, denominador = base.split('/')
-        return simbolo['parenteses_esquerda'] + frac_latex(numerador,denominador) + simbolo['parenteses_direita'] +'^' + em_chaves(expoente)
+        return coeficiente + simbolo['parenteses_esquerda'] + frac_latex(numerador,denominador) + simbolo['parenteses_direita'] +'^' + em_chaves(expoente)
     else:
-        return base + '^' + em_chaves(expoente)
+        return coeficiente + base + '^' + em_chaves(expoente)
 
 def raiz_latex(radicando: str, indice: str, coeficiente = '') -> str:
     """Retorna coeficiente\\sqrt{radicando}{indice}"""
+    if coeficiente == '-1':
+        coeficiente = '-'
     return coeficiente + "\\sqrt" + em_chaves(indice) + em_chaves(radicando)
 
 def logaritmo_latex(base: str, logaritimando:str, coeficiente = '')-> str:
     """Retorna coeficiente \\log_{base}{logaritmando}"""
+    if coeficiente == '-1':
+        coeficiente = '-'
     return coeficiente + '\\log_' + em_chaves(base) + em_chaves(logaritimando)
 
 ## Definindo Exponencial, Raiz, Logaritmo, Fração
@@ -244,7 +250,7 @@ def number_to_potencia(number):
     """Fatoração por trial division direta usando cache de primos em memória."""
     from engine.basic.operacoes_basicas import _PRIMOS_CACHE
     multiplos_contados = {}
-    n = int(number)
+    n = abs(int(number))
 
     for p in _PRIMOS_CACHE:
         if p * p > n:
@@ -290,6 +296,9 @@ def simplificar(objeto):
         if radicando=='1' or radicando=='0':
             return Racional(radicando)
 
+        if int(radicando) < 0:
+            raise ValueError("Raiz de número negativo não é real")
+
         radicando = number_to_potencia(radicando)
         indice = objeto.return_indice()
         if indice=='0':
@@ -323,16 +332,23 @@ def simplificar(objeto):
     elif objeto.tipo_de_numero == 'exponencial':
 
         base_total = '1'
-        
+
         base = objeto.return_base()
         expoente = objeto.return_expoente()
+        coeficiente = objeto.return_coeficiente()
 
-        if base=='1':
-            return Racional(objeto.coeficiente)
+        if base=='0' and expoente=='0':
+            raise ValueError("0^0 é uma forma indeterminada")
+        elif int(base) < 0:
+            raise ValueError("Base negativa na exponencial não suportada ainda")
+        elif base=='1':
+            return Racional(coeficiente)
         elif base=='0':
             return Racional('0')
         elif expoente=='0':
-            return Racional('1')
+            return Racional(coeficiente)
+        elif expoente=='1':
+            return Racional(basic_operations.multi(coeficiente, base))
         else:
             multiplos = number_to_potencia(base)
             if '1' in multiplos.values():
@@ -354,7 +370,7 @@ def simplificar(objeto):
         base = objeto.return_base()
 
         logaritmando_total = '1'
-        if base=='1' or base=='0':
+        if base=='1' or base=='0' or int(base) < 0:
             raise ValueError("A função logaritmica não é definida quando constituida com base igual a 1 ou 0.")
         elif logaritmando=='0':
             raise ValueError("A função logaritmica está explodindo para o infinito, logaritmando=0.")
