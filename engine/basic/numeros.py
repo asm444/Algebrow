@@ -75,7 +75,7 @@ class Exponencial:
         return hash(('exponencial', self.base, self.expoente, self.coeficiente))
 
     def numero_real(self):
-        return str(float(self.base)**float(self.expoente))
+        return str(float(self.coeficiente) * float(self.base)**float(self.expoente))
 
     def simplificar(self):
         resultado = simplificar(self)
@@ -125,7 +125,7 @@ class Raiz:
         return hash(('raiz', self.indice, self.radicando, self.coeficiente))
 
     def numero_real(self):
-        return float(self.radicando) ** (1 / float(self.indice))
+        return float(self.coeficiente) * (float(self.radicando) ** (1 / float(self.indice)))
 
     def simplificar(self):
         resultado = simplificar(self)
@@ -160,7 +160,7 @@ class Logaritmo:
 
     def numero_real(self):
         from math import log
-        return log(float(self.logaritimando), float(self.base))
+        return float(self.coeficiente) * log(float(self.logaritimando), float(self.base))
 
     def __eq__(self, other):
         if not isinstance(other, Logaritmo):
