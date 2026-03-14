@@ -198,5 +198,26 @@ class TestSolver(unittest.TestCase):
         self.assertAlmostEqual(float(r.valor_numerico), 14.6969, places=3)
 
 
+class TestParserVariaveis(unittest.TestCase):
+    def test_variavel_simples(self):
+        r = parsear('x')
+        self.assertEqual(r.tipo_de_numero, 'variavel')
+
+    def test_equacao_simples(self):
+        r = parsear('2*x + 3 = 7')
+        self.assertEqual(r.tipo_de_numero, 'sentenca')
+        self.assertEqual(r.operador, '=')
+
+    def test_multiplicacao_implicita(self):
+        r = parsear('2x')
+        # Deve multiplicar 2 * x
+        self.assertIsNotNone(r)
+
+    def test_inequacao(self):
+        r = parsear('x > 5')
+        self.assertEqual(r.tipo_de_numero, 'sentenca')
+        self.assertEqual(r.operador, '>')
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -84,6 +84,8 @@ def _mesma_parte_irracional(a, b):
         return a.return_base() == b.return_base() and a.return_logaritmando() == b.return_logaritmando()
     elif tipo == 'racional':
         return True
+    elif tipo == 'variavel':
+        return a.nome == b.nome
     return False
 
 
@@ -107,6 +109,11 @@ def _tentar_somar(a, b):
         return numbers.Exponencial(a.return_base(), a.return_expoente(), novo_coef)
     elif tipo == 'logaritmo':
         return numbers.Logaritmo(a.return_base(), a.return_logaritmando(), novo_coef)
+    elif tipo == 'variavel':
+        from engine.parser import Variavel
+        v = Variavel(a.nome)
+        v.coeficiente = novo_coef
+        return v
     return None
 
 
@@ -142,6 +149,10 @@ def subtracao(numero1, numero2):
         n2_neg = numbers.Exponencial(n2.return_base(), n2.return_expoente(), novo_coef)
     elif tipo == 'logaritmo':
         n2_neg = numbers.Logaritmo(n2.return_base(), n2.return_logaritmando(), novo_coef)
+    elif tipo == 'variavel':
+        from engine.parser import Variavel
+        n2_neg = Variavel(n2.nome)
+        n2_neg.coeficiente = novo_coef
     else:
         raise ValueError(f"Tipo desconhecido: {tipo}")
 
@@ -218,6 +229,11 @@ def _racional_vezes_irracional(racional, irracional):
         return numbers.Exponencial(irracional.return_base(), irracional.return_expoente(), novo_coef)
     elif tipo == 'logaritmo':
         return numbers.Logaritmo(irracional.return_base(), irracional.return_logaritmando(), novo_coef)
+    elif tipo == 'variavel':
+        from engine.parser import Variavel
+        v = Variavel(irracional.nome)
+        v.coeficiente = novo_coef
+        return v
     raise ValueError(f"Tipo inesperado: {tipo}")
 
 
@@ -232,4 +248,9 @@ def _com_coeficiente(obj, novo_coef):
         return numbers.Exponencial(obj.return_base(), obj.return_expoente(), novo_coef)
     elif tipo == 'logaritmo':
         return numbers.Logaritmo(obj.return_base(), obj.return_logaritmando(), novo_coef)
+    elif tipo == 'variavel':
+        from engine.parser import Variavel
+        v = Variavel(obj.nome)
+        v.coeficiente = novo_coef
+        return v
     raise ValueError(f"Tipo inesperado: {tipo}")

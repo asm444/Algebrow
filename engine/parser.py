@@ -1,10 +1,12 @@
 """Parser descendente recursivo para expressões matemáticas.
 
 Gramática:
-    expressao := termo (('+' | '-') termo)*
-    termo     := fator (('*' | '/') fator)*
-    fator     := atomo ('^' fator)?
-    atomo     := numero | fracao | 'sqrt' '(' expr ')' | 'sqrt' indice '(' expr ')'
+    sentenca   := expressao (('=' | '>' | '<' | '>=' | '<=') expressao)?
+    expressao  := termo (('+' | '-') termo)*
+    termo      := fator (('*' | '/') fator)*
+    fator      := atomo ('^' fator)?
+    atomo      := numero | fracao | variavel
+               | 'sqrt' '(' expr ')' | 'sqrt' indice '(' expr ')'
                | 'log_' base '(' expr ')' | 'log' '(' expr ')'
                | '(' expressao ')' | '-' fator
 
@@ -14,10 +16,49 @@ Exemplos de entrada:
     "2^3"           → Exponencial('2', '3')
     "log_3(9)"      → Logaritmo('3', '9')
     "3/4 + sqrt(2)" → soma(Racional('3/4'), Raiz('2', '2'))
+    "2x + 3 = 7"   → Sentenca(soma(multiplicacao(...), ...), '=', ...)
 """
 
 from engine.basic.numeros import Racional, Raiz, Exponencial, Logaritmo
 from engine.basic.expressao import soma, subtracao, multiplicacao, Expressao
+
+
+# ============================================================
+# Classes auxiliares
+# ============================================================
+
+VARIAVEIS_PERMITIDAS = {'x', 'y', 'z', 'a', 'b', 'c', 'n', 't'}
+
+
+class Variavel:
+    def __init__(self, nome):
+        self.nome = nome
+        self.tipo_de_numero = 'variavel'
+        self.coeficiente = '1'
+
+    def representacao_latex(self):
+        return self.nome
+
+    def simplificar(self):
+        return self
+
+    def __eq__(self, other):
+        return isinstance(other, Variavel) and self.nome == other.nome
+
+    def __hash__(self):
+        return hash(('variavel', self.nome))
+
+
+class Sentenca:
+    def __init__(self, esquerda, operador, direita):
+        self.esquerda = esquerda
+        self.operador = operador  # '=', '>', '<', '>=', '<='
+        self.direita = direita
+        self.tipo_de_numero = 'sentenca'
+
+    def representacao_latex(self):
+        ops = {'=': '=', '>': '>', '<': '<', '>=': '\\geq', '<=': '\\leq'}
+        return f"{self.esquerda.representacao_latex()} {ops[self.operador]} {self.direita.representacao_latex()}"
 
 
 class TokenizadorError(Exception):
@@ -49,7 +90,7 @@ def tokenizar(texto):
             tokens.append(('NUM', texto[inicio:i]))
             continue
 
-        # Palavras-chave: sqrt, log
+        # Palavras-chave: sqrt, log; variáveis de uma letra
         if c.isalpha():
             inicio = i
             while i < len(texto) and texto[i].isalpha():
@@ -59,8 +100,34 @@ def tokenizar(texto):
                 tokens.append(('SQRT', 'sqrt'))
             elif palavra == 'log':
                 tokens.append(('LOG', 'log'))
+            elif len(palavra) == 1 and palavra in VARIAVEIS_PERMITIDAS:
+                tokens.append(('VAR', palavra))
             else:
                 raise TokenizadorError(f"Identificador desconhecido: '{palavra}'")
+            continue
+
+        # Operadores de comparação: >=, <=, >, <, =
+        if c == '>' :
+            if i + 1 < len(texto) and texto[i + 1] == '=':
+                tokens.append(('GE', '>='))
+                i += 2
+            else:
+                tokens.append(('GT', '>'))
+                i += 1
+            continue
+
+        if c == '<':
+            if i + 1 < len(texto) and texto[i + 1] == '=':
+                tokens.append(('LE', '<='))
+                i += 2
+            else:
+                tokens.append(('LT', '<'))
+                i += 1
+            continue
+
+        if c == '=':
+            tokens.append(('EQ', '='))
+            i += 1
             continue
 
         # Operadores e símbolos
@@ -71,8 +138,26 @@ def tokenizar(texto):
 
         raise TokenizadorError(f"Caractere inesperado: '{c}' na posição {i}")
 
-    tokens.append(('EOF', ''))
-    return tokens
+    # Inserir multiplicação implícita entre NUM e VAR, VAR e NUM, VAR e VAR,
+    # NUM e '(', VAR e '(' — mas NÃO após '_' (caso sqrt_3(...) e log_3(...))
+    tokens_expandidos = []
+    for idx, tok in enumerate(tokens):
+        tokens_expandidos.append(tok)
+        if idx + 1 < len(tokens):
+            prox = tokens[idx + 1]
+            # Não inserir multiplicação se o token anterior ao NUM é '_'
+            # (ex: sqrt_3(8) → o NUM '3' seguido de '(' não é multiplicação)
+            if idx > 0 and tokens[idx - 1][0] == '_' and tok[0] == 'NUM':
+                continue
+            if (tok[0] in ('NUM', 'VAR') and prox[0] in ('VAR', 'SQRT', 'LOG')) or \
+               (tok[0] in ('NUM', 'VAR') and prox[0] == '(' and
+                (idx == 0 or tokens[idx - 1][0] != '_')) or \
+               (tok[0] == 'VAR' and prox[0] == 'NUM') or \
+               (tok[0] == ')' and prox[0] in ('VAR', 'NUM', '(')):
+                tokens_expandidos.append(('*', '*'))
+
+    tokens_expandidos.append(('EOF', ''))
+    return tokens_expandidos
 
 
 # ============================================================
@@ -108,10 +193,27 @@ class Parser:
         return token
 
     def parse(self):
-        resultado = self.expressao()
+        resultado = self.sentenca()
         if self.peek()[0] != 'EOF':
             raise ParserError(f"Tokens não consumidos a partir de '{self.peek()[1]}'")
         return resultado
+
+    def sentenca(self):
+        """sentenca := expressao (('=' | '>' | '<' | '>=' | '<=') expressao)?"""
+        self._entrar()
+        try:
+            esquerda = self.expressao()
+
+            tipos_comparacao = {'EQ': '=', 'GT': '>', 'LT': '<', 'GE': '>=', 'LE': '<='}
+            if self.peek()[0] in tipos_comparacao:
+                tok = self.consume()
+                operador = tipos_comparacao[tok[0]]
+                direita = self.expressao()
+                return Sentenca(esquerda, operador, direita)
+
+            return esquerda
+        finally:
+            self._sair()
 
     def expressao(self):
         """expressao := termo (('+' | '-') termo)*"""
@@ -168,6 +270,12 @@ class Parser:
                 if (base.tipo_de_numero == 'racional' and
                         expoente.tipo_de_numero == 'racional'):
                     return Exponencial(base.return_number(), expoente.return_number())
+                # Se envolve variáveis, criar Exponencial com representação genérica
+                if base.tipo_de_numero == 'variavel' or expoente.tipo_de_numero == 'variavel':
+                    return Exponencial(
+                        base.return_number() if hasattr(base, 'return_number') and base.tipo_de_numero != 'variavel' else base.nome if base.tipo_de_numero == 'variavel' else '?',
+                        expoente.return_number() if hasattr(expoente, 'return_number') and expoente.tipo_de_numero != 'variavel' else expoente.nome if expoente.tipo_de_numero == 'variavel' else '?'
+                    )
                 raise ParserError("Exponencial com base/expoente não-racional ainda não suportado")
 
             return base
@@ -196,6 +304,11 @@ class Parser:
                     return Exponencial(operando.return_base(), operando.return_expoente(), novo_coef)
                 elif operando.tipo_de_numero == 'logaritmo':
                     return Logaritmo(operando.return_base(), operando.return_logaritmando(), novo_coef)
+
+            # Variável
+            if tipo == 'VAR':
+                self.consume('VAR')
+                return Variavel(valor)
 
             # Número (pode ser parte de fração: "3/4")
             if tipo == 'NUM':
