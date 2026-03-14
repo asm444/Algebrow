@@ -3,7 +3,7 @@
   <img src="https://img.shields.io/badge/react-18+-61DAFB?style=for-the-badge&logo=react&logoColor=black" />
   <img src="https://img.shields.io/badge/fastapi-0.100+-009688?style=for-the-badge&logo=fastapi&logoColor=white" />
   <img src="https://img.shields.io/badge/zero_deps-engine-ff6b6b?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/testes-137_passando-brightgreen?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/testes-331_passando-brightgreen?style=for-the-badge" />
 </p>
 
 # Algebrow
@@ -335,6 +335,71 @@ Algebrow/
 
 ---
 
+### Fase 4 — Cálculo
+
+**O que foi implementado:**
+- AST simbólica (`NoExpressao`) para representar `sen(x²)`, `e^(2x+1)`, etc.
+  - Tipos: numero, variavel, operacao, funcao
+  - Helpers fluentes: `num()`, `var()`, `op()`, `func()`
+- Derivação simbólica via regras recursivas na AST:
+  - Constante, variável, soma, produto, quociente, potência
+  - Regra da cadeia para funções compostas
+  - sin→cos, cos→-sin, exp→exp, ln→1/x, tan→sec²
+  - Cada regra gera Passo explicativo com justificativa
+- Integração simbólica:
+  - Tabela direta: x^n, 1/x, sin, cos, exp
+  - Constante × função, soma/diferença
+  - Adiciona + C automaticamente
+- Limites:
+  - Substituição direta
+  - L'Hôpital para formas indeterminadas 0/0 e ∞/∞
+  - Fallback para aproximação numérica
+- Simplificação algébrica: 0+x→x, 1*x→x, 0*x→0, x^0→1, x^1→x
+
+**O que deu certo:**
+- `d/dx(x³ + 2x)` → `3x² + 2` com passos de cada regra
+- `∫(2x + 1)dx` → `x² + x + C`
+- `lim(x→0) sen(x)/x` → `1` via L'Hôpital
+- 45 testes de cálculo passando
+
+**Ambição futura:**
+- Séries de Taylor/Maclaurin
+- Integração por substituição e por partes
+- Frações parciais
+- Derivadas parciais
+
+---
+
+### Fase 5 — Álgebra Linear
+
+**O que foi implementado:**
+- Classe `Matriz` com aritmética exata (strings):
+  - Soma, subtração, multiplicação escalar e matricial
+  - Transposta, igualdade
+  - LaTeX com `\begin{pmatrix}...\end{pmatrix}`
+- Determinante: 2×2 (ad-bc), 3×3 (Sarrus), n×n (Laplace)
+  - Passo-a-passo mostrando cada menor e cofator
+- Eliminação de Gauss com passo-a-passo pedagógico:
+  - Cada operação elementar como Passo (L₂ ← L₂ - kL₁)
+  - Classificação: determinado / indeterminado / impossível
+  - Substituição regressiva
+- Autovalores 2×2 via polinômio característico (`det(A - λI) = 0`)
+- Autovetores 2×2
+
+**O que deu certo:**
+- Determinante 3×3 com Sarrus e passos detalhados
+- Sistema 3×3 via Gauss com cada operação elementar
+- Autovalores de `[[4,1],[2,3]]` → `λ₁=5, λ₂=2`
+- 33 testes de álgebra linear passando
+
+**Ambição futura:**
+- Autovalores/autovetores n×n
+- Decomposição LU
+- Espaços vetoriais e bases
+- Diagonalização
+
+---
+
 ## Roadmap
 
 | Fase | Status | Descrição |
@@ -343,8 +408,21 @@ Algebrow/
 | 1 | ✅ Concluída | Web app mínimo: parser + solver + API + frontend |
 | 2 | ✅ Concluída | Álgebra: polinômios, equações, sistemas |
 | 3 | ✅ Concluída | Funções elementares e gráficos 2D |
-| 4 | 🔲 Planejada | Cálculo: derivadas, integrais, limites |
-| 5 | 🔲 Planejada | Álgebra linear: matrizes, determinantes |
+| 4 | ✅ Concluída | Cálculo: derivadas, integrais, limites |
+| 5 | ✅ Concluída | Álgebra linear: matrizes, determinantes, autovalores |
+
+---
+
+## Estatísticas
+
+| Métrica | Valor |
+|---------|-------|
+| Testes | 331 passando |
+| Tempo de testes | 0.34s |
+| Commits | 18+ |
+| Módulos do engine | 16 arquivos Python |
+| Dependências do engine | 0 (zero!) |
+| Linhas de código (engine) | ~3500 |
 
 ---
 
