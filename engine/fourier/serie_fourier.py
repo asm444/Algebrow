@@ -2,53 +2,12 @@
 
 import math
 from engine.basic.passo import Passo, Historico
-
-
-# Namespace seguro para avaliação de expressões (mesma abordagem de grafico.py)
-_NAMESPACE_SEGURO = {
-    'sqrt': math.sqrt,
-    'log': math.log10,
-    'ln': math.log,
-    'sin': math.sin,
-    'cos': math.cos,
-    'tan': math.tan,
-    'abs': abs,
-    'pi': math.pi,
-    'e': math.e,
-    'exp': math.exp,
-    'asin': math.asin,
-    'acos': math.acos,
-    'atan': math.atan,
-}
-
-
-def _preparar_expressao(expressao: str) -> str:
-    """Converte notações comuns para Python válido."""
-    expr = expressao.strip()
-    resultado = []
-    i = 0
-    while i < len(expr):
-        c = expr[i]
-        if c == '^':
-            resultado.append('**')
-            i += 1
-            continue
-        # Multiplicação implícita: dígito seguido de letra
-        if (i > 0 and resultado and
-                expr[i - 1].isdigit() and c.isalpha()):
-            resultado.append('*')
-        resultado.append(c)
-        i += 1
-    return ''.join(resultado)
+from engine.avaliador_seguro import avaliar_seguro
 
 
 def _avaliar_f(f_str: str, x: float) -> float:
-    """Avalia f(x) com namespace seguro."""
-    ns = dict(_NAMESPACE_SEGURO)
-    ns['x'] = x
-    expr = _preparar_expressao(f_str)
-    # eval com namespace restrito -- mesma abordagem de engine/funcoes/grafico.py
-    return float(eval(expr, {"__builtins__": {}}, ns))  # noqa: S307
+    """Avalia f(x) via AST walking seguro (sem eval)."""
+    return avaliar_seguro(f_str, {'x': x})
 
 
 def _simpson(f, a: float, b: float, n: int = 1000) -> float:

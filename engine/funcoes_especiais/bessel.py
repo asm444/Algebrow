@@ -63,7 +63,8 @@ def bessel_zeros(nu: float, n_zeros: int = 5) -> list:
     x = max(passo, nu * 0.5 + 0.5)
     val_ant, _, _ = bessel_j(nu, x, n_termos=30)
 
-    while len(zeros) < n_zeros:
+    max_x = 1000.0
+    while len(zeros) < n_zeros and x < max_x:
         x += passo
         val_atual, _, _ = bessel_j(nu, x, n_termos=30)
 
