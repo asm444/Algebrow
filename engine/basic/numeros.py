@@ -65,6 +65,15 @@ class Exponencial:
         else:
             return exponencial_latex(self.base, self.expoente, self.coeficiente)
 
+    def __eq__(self, other):
+        if not isinstance(other, Exponencial):
+            return NotImplemented
+        return (self.base == other.base and self.expoente == other.expoente
+                and self.coeficiente == other.coeficiente)
+
+    def __hash__(self):
+        return hash(('exponencial', self.base, self.expoente, self.coeficiente))
+
     def numero_real(self):
         return str(float(self.base)**float(self.expoente))
 
@@ -106,8 +115,18 @@ class Raiz:
     def modify_coeficiente(self, novo_coeficiente):
         self.coeficiente = novo_coeficiente
 
+    def __eq__(self, other):
+        if not isinstance(other, Raiz):
+            return NotImplemented
+        return (self.indice == other.indice and self.radicando == other.radicando
+                and self.coeficiente == other.coeficiente)
+
+    def __hash__(self):
+        return hash(('raiz', self.indice, self.radicando, self.coeficiente))
+
     def numero_real(self):
         return float(self.radicando) ** (1 / float(self.indice))
+
     def simplificar(self):
         resultado = simplificar(self)
 
@@ -143,11 +162,21 @@ class Logaritmo:
         from math import log
         return log(float(self.logaritimando), float(self.base))
 
+    def __eq__(self, other):
+        if not isinstance(other, Logaritmo):
+            return NotImplemented
+        return (self.base == other.base and self.logaritimando == other.logaritimando
+                and self.coeficiente == other.coeficiente)
+
+    def __hash__(self):
+        return hash(('logaritmo', self.base, self.logaritimando, self.coeficiente))
+
     def representacao_latex(self):
         if self.coeficiente=='1':
             return logaritmo_latex(self.base, self.logaritimando)
         else:
             return logaritmo_latex(self.base, self.logaritimando, self.coeficiente)
+
     def simplificar(self):
         resultado = simplificar(self)
 
@@ -193,9 +222,17 @@ class Racional:
         else:
             return self.numerador
 
+    def __eq__(self, other):
+        if not isinstance(other, Racional):
+            return NotImplemented
+        return (self.numerador == other.numerador and self.denominador == other.denominador)
+
+    def __hash__(self):
+        return hash(('racional', self.numerador, self.denominador))
+
     def numero_real(self):
         return basic_operations.div(self.numerador,self.denominador)
-    
+
 ### Capacidade de potencia (36 -> 6^2; 144)
 def number_to_potencia(number):
     multiplos_contados = {}
