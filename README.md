@@ -3,7 +3,7 @@
   <img src="https://img.shields.io/badge/react-18+-61DAFB?style=for-the-badge&logo=react&logoColor=black" />
   <img src="https://img.shields.io/badge/fastapi-0.100+-009688?style=for-the-badge&logo=fastapi&logoColor=white" />
   <img src="https://img.shields.io/badge/zero_deps-engine-ff6b6b?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/testes-466_passando-brightgreen?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/testes-532_passando-brightgreen?style=for-the-badge" />
 </p>
 
 # Algebrow
@@ -454,14 +454,14 @@ Algebrow/
 | Fase | Status | Descrição |
 |------|--------|-----------|
 | 6 | ✅ | Complexos: aritmética, polar, Euler, Laplace |
-| 8 | 🔲 | Funções especiais: Gamma, Bessel, Legendre, Hermite |
+| 8 | ✅ | Funções especiais: Gamma, Bessel, Legendre, Hermite, Laguerre |
 | 9 | ✅ | Geometria diferencial: curvas, superfícies, Frenet |
-| 10 | 🔲 | Sturm-Liouville, funções de Green |
-| 11 | 🔲 | PDEs: calor, onda, Laplace, separação de variáveis |
-| 12 | 🔲 | Fourier: séries, transformada, DFT |
-| 13 | 🔲 | Cálculo variacional: Euler-Lagrange |
-| 14 | 🔲 | Equações integrais: Fredholm, Volterra |
-| 15 | 🔲 | Tensores: métrico, Christoffel, Riemann (Wald) |
+| 10 | ✅ | Sturm-Liouville, funções de Green |
+| 11 | ✅ | PDEs: calor, onda, Laplace, separação de variáveis |
+| 12 | ✅ | Fourier: séries completas, transformada contínua |
+| 13 | ✅ | Cálculo variacional: Euler-Lagrange, braquistócrona |
+| 14 | ✅ | Equações integrais: Fredholm, Volterra, Neumann |
+| 15 | ✅ | Tensores: métrico, Christoffel, Riemann, Schwarzschild (Wald) |
 | 16 | 🔲 | Teoria de grupos: representações, SO(3), SU(2) |
 
 ---
@@ -470,12 +470,12 @@ Algebrow/
 
 | Métrica | Valor |
 |---------|-------|
-| Testes | 466 passando |
-| Tempo de testes | 0.49s |
-| Commits | 25+ |
-| Módulos do engine | 30+ arquivos Python |
+| Testes | 532 passando |
+| Tempo de testes | 22s |
+| Commits | 35+ |
+| Módulos do engine | 45+ arquivos Python |
 | Dependências do engine | 0 (zero!) |
-| Linhas de código (engine) | ~8000 |
+| Linhas de código (engine) | ~14000 |
 
 ---
 
