@@ -42,7 +42,7 @@ class Exponencial:
         self.coeficiente = coeficiente
         self.tipo_de_numero = 'exponencial'
 
-        if expoente in '/':
+        if '/' in expoente:
             self.converte_para_raiz = True
         else:
             self.converte_para_raiz = False
@@ -194,7 +194,11 @@ class Racional:
     def __init__(self, numero):
         numero = str(numero)
         if '/' in numero:
-            self.numerador, self.denominador = numero.split('/')
+            numero = basic_operations.reduz_fracao(numero)
+            if '/' in numero:
+                self.numerador, self.denominador = numero.split('/')
+            else:
+                self.numerador, self.denominador = numero, '1'
             self.coeficiente = self.numerador
         else:
             self.numerador, self.denominador = numero, '1'
@@ -356,11 +360,11 @@ def simplificar(objeto):
 
             minimo = min(multiplos.values())
             expoente_total = basic_operations.multi(minimo, expoente)
-            for base in multiplos.keys():
-                expoente_temporario = int(multiplos[base])//int(minimo)
+            for b in multiplos.keys():
+                expoente_temporario = int(multiplos[b])//int(minimo)
                 if expoente_temporario==0:
                     return objeto
-                base_total = basic_operations.multi(base_total, str(int(base)**int(expoente_temporario) ))
+                base_total = basic_operations.multi(base_total, str(int(b)**int(expoente_temporario) ))
 
             return Exponencial(base_total, expoente_total, objeto.return_coeficiente())
 
@@ -388,11 +392,11 @@ def simplificar(objeto):
 
             minimo = min(multiplos.values())
 
-            for base in multiplos.keys():
-                expoente_temporario = int(multiplos[base])//int(minimo)
+            for b in multiplos.keys():
+                expoente_temporario = int(multiplos[b])//int(minimo)
                 if expoente_temporario==0:
                     return objeto
-                logaritmando_total = basic_operations.multi(logaritmando_total, str(int(base)**int(expoente_temporario) ))
+                logaritmando_total = basic_operations.multi(logaritmando_total, str(int(b)**int(expoente_temporario) ))
 
             coeficiente_total = basic_operations.multi(coeficiente_total, minimo)
             if logaritmando_total==objeto.return_base():

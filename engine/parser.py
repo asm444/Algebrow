@@ -250,7 +250,8 @@ class Parser:
                             direita.tipo_de_numero == 'racional'):
                         from engine.basic import operacoes_basicas as ops
                         resultado = ops.div(esquerda.return_number(), direita.return_number())
-                        return Racional(resultado)
+                        esquerda = Racional(resultado)
+                        continue
                     esquerda = multiplicacao(esquerda, direita)
 
             return esquerda
