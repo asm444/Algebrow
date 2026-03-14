@@ -1,0 +1,313 @@
+/* ============================
+   Layout Principal
+   ============================ */
+
+.app {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+.app-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.app-header h1 {
+  font-size: 2.5rem;
+  letter-spacing: -1px;
+  margin: 0;
+}
+
+.app-subtitulo {
+  opacity: 0.7;
+  margin-top: 0.5rem;
+}
+
+.app-main {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.app-aside {
+  margin-top: 2rem;
+}
+
+/* ============================
+   Entrada de Expressão
+   ============================ */
+
+.entrada-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.preview-area {
+  min-height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  border-radius: 12px;
+  background: var(--code-bg, #f4f3ec);
+  font-size: 1.4rem;
+}
+
+.preview-area .placeholder {
+  opacity: 0.4;
+  font-style: italic;
+}
+
+.input-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.input-expressao {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  font-size: 1.1rem;
+  font-family: var(--mono, monospace);
+  border: 2px solid var(--border, #e5e4e7);
+  border-radius: 8px;
+  background: var(--bg, #fff);
+  color: var(--text-h, #08060d);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.input-expressao:focus {
+  border-color: var(--accent, #aa3bff);
+}
+
+.btn-resolver {
+  padding: 0.75rem 1.5rem;
+  font-size: 1.3rem;
+  font-weight: 700;
+  border: 2px solid var(--accent, #aa3bff);
+  border-radius: 8px;
+  background: var(--accent, #aa3bff);
+  color: #fff;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.btn-resolver:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-resolver:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+.verbosidade-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.verbosidade-row input[type="range"] {
+  flex: 1;
+  max-width: 200px;
+  accent-color: var(--accent, #aa3bff);
+}
+
+.verbosidade-label {
+  min-width: 120px;
+  font-weight: 600;
+}
+
+/* ============================
+   Resultado
+   ============================ */
+
+.resultado-container {
+  text-align: center;
+  padding: 1.5rem;
+  border-radius: 12px;
+  background: var(--accent-bg, rgba(170, 59, 255, 0.1));
+  border: 1px solid var(--accent-border, rgba(170, 59, 255, 0.3));
+}
+
+.resultado-expressao {
+  font-size: 1.1rem;
+  margin-bottom: 0.75rem;
+  opacity: 0.8;
+}
+
+.resultado-igual {
+  margin: 0 0.5rem;
+  font-size: 1.2rem;
+}
+
+.resultado-principal {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.resultado-numerico {
+  font-size: 0.9rem;
+  opacity: 0.6;
+  font-family: var(--mono, monospace);
+}
+
+.resultado-erro {
+  text-align: center;
+  padding: 1rem;
+  border-radius: 8px;
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* ============================
+   Passo a Passo
+   ============================ */
+
+.passos-container h3 {
+  margin: 0 0 1rem;
+  font-size: 1.1rem;
+}
+
+.passos-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.passo-item {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  background: var(--code-bg, #f4f3ec);
+  border-left: 3px solid var(--accent, #aa3bff);
+}
+
+.passo-nivel-0 { border-left-color: #10b981; }
+.passo-nivel-1 { border-left-color: var(--accent, #aa3bff); }
+.passo-nivel-2 { border-left-color: #3b82f6; }
+.passo-nivel-3 { border-left-color: #f59e0b; }
+.passo-nivel-4 { border-left-color: #6b7280; }
+
+.passo-cabecalho {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.passo-numero {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: var(--accent, #aa3bff);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.passo-descricao {
+  flex: 1;
+  font-weight: 500;
+}
+
+.passo-toggle {
+  font-size: 0.7rem;
+  opacity: 0.5;
+}
+
+.passo-transformacao {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  padding-left: 2.25rem;
+  font-size: 1.1rem;
+}
+
+.passo-seta {
+  opacity: 0.5;
+  font-size: 1.2rem;
+}
+
+.passo-detalhes {
+  margin-top: 0.5rem;
+  padding: 0.75rem;
+  padding-left: 2.25rem;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.passo-justificativa,
+.passo-metodo {
+  margin: 0.25rem 0;
+}
+
+/* ============================
+   Histórico
+   ============================ */
+
+.historico-container {
+  border-top: 1px solid var(--border, #e5e4e7);
+  padding-top: 1.5rem;
+}
+
+.historico-cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.historico-cabecalho h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.btn-limpar {
+  font-size: 0.8rem;
+  padding: 0.25rem 0.75rem;
+  border: 1px solid var(--border, #e5e4e7);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text, #6b6375);
+  cursor: pointer;
+}
+
+.btn-limpar:hover {
+  background: var(--code-bg, #f4f3ec);
+}
+
+.historico-lista {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.historico-item {
+  width: 100%;
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-h, #08060d);
+  font-family: var(--mono, monospace);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.historico-item:hover {
+  background: var(--code-bg, #f4f3ec);
+}

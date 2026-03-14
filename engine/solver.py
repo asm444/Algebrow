@@ -42,10 +42,13 @@ class Solver:
 
     def resolver(self, entrada):
         """Resolve uma expressão textual e retorna ResultadoCalculo."""
+        if not entrada or not entrada.strip():
+            raise ValueError("Expressão vazia")
+
         historico = Historico(verbosidade=self.verbosidade)
 
         # Passo 1: Parse
-        objeto = parsear(entrada)
+        objeto = parsear(entrada.strip())
         latex_entrada = objeto.representacao_latex() if hasattr(objeto, 'representacao_latex') else entrada
 
         historico.adicionar(Passo(
@@ -362,6 +365,9 @@ class Solver:
                     val = termo.numero_real()
                     total += float(val)
                 return f"{total:.10g}"
-        except Exception:
+        except (ValueError, ZeroDivisionError, OverflowError):
+            return ''
+        except AttributeError:
+            # Tipo sem método numero_real() — não deveria acontecer, mas não mascara
             return ''
         return ''
