@@ -263,4 +263,90 @@ def derivar(no: NoExpressao, variavel: str = 'x', historico: Historico = None) -
             cos2 = op('^', func('cos', arg), num('2'))
             return simplificar_no(op('*', op('/', num('1'), cos2), d_arg))
 
+        if no.valor == 'arcsin':
+            _passo(
+                'Derivada de arcsin(x) -> 1/sqrt(1-x^2), com regra da cadeia',
+                latex_antes=f'\\frac{{d}}{{d{variavel}}}({latex_expr})',
+                regra='arcsin -> 1/sqrt(1-x^2)',
+            )
+            # 1 / sqrt(1 - arg^2) * d_arg
+            interior = op('-', num('1'), op('^', arg, num('2')))
+            raiz = op('^', interior, num('0.5'))
+            return simplificar_no(op('*', op('/', num('1'), raiz), d_arg))
+
+        if no.valor == 'arccos':
+            _passo(
+                'Derivada de arccos(x) -> -1/sqrt(1-x^2), com regra da cadeia',
+                latex_antes=f'\\frac{{d}}{{d{variavel}}}({latex_expr})',
+                regra='arccos -> -1/sqrt(1-x^2)',
+            )
+            interior = op('-', num('1'), op('^', arg, num('2')))
+            raiz = op('^', interior, num('0.5'))
+            return simplificar_no(op('*', op('/', num('-1'), raiz), d_arg))
+
+        if no.valor == 'arctan':
+            _passo(
+                'Derivada de arctan(x) -> 1/(1+x^2), com regra da cadeia',
+                latex_antes=f'\\frac{{d}}{{d{variavel}}}({latex_expr})',
+                regra='arctan -> 1/(1+x^2)',
+            )
+            denominador = op('+', num('1'), op('^', arg, num('2')))
+            return simplificar_no(op('*', op('/', num('1'), denominador), d_arg))
+
+        if no.valor == 'sqrt':
+            _passo(
+                'Derivada de sqrt(x) -> 1/(2*sqrt(x)), com regra da cadeia',
+                latex_antes=f'\\frac{{d}}{{d{variavel}}}({latex_expr})',
+                regra='sqrt -> 1/(2*sqrt)',
+            )
+            return simplificar_no(
+                op('*', op('/', num('1'), op('*', num('2'), op('^', arg, num('0.5')))), d_arg)
+            )
+
     raise ValueError(f"Nao sei derivar: {no}")
+
+
+def derivar_ordem(no: NoExpressao, variavel: str = 'x', ordem: int = 1,
+                  historico: Historico = None) -> NoExpressao:
+    """Calcula a derivada de ordem n: d^n f / dx^n."""
+    resultado = no
+    for i in range(ordem):
+        if historico is not None:
+            historico.adicionar(Passo(
+                nivel=1,
+                descricao=f'Calculando derivada de ordem {i+1}',
+                regra=f'Derivada ordem {i+1}',
+            ))
+        resultado = simplificar_no(derivar(resultado, variavel, historico))
+    return resultado
+
+
+def derivada_implicita(expressao_F: NoExpressao, var_x: str = 'x', var_y: str = 'y',
+                       historico: Historico = None) -> NoExpressao:
+    """Calcula dy/dx dado F(x,y) = 0 usando derivada implicita.
+
+    dy/dx = -Fx / Fy
+    onde Fx = dF/dx e Fy = dF/dy.
+    """
+    if historico is not None:
+        historico.adicionar(Passo(
+            nivel=1,
+            descricao=f'Derivada implicita: dy/dx = -F_{var_x} / F_{var_y}',
+            regra='Derivada implicita',
+        ))
+
+    Fx = simplificar_no(derivar(expressao_F, var_x, historico))
+    Fy = simplificar_no(derivar(expressao_F, var_y, historico))
+
+    # dy/dx = -Fx / Fy
+    resultado = simplificar_no(op('/', op('*', num('-1'), Fx), Fy))
+
+    if historico is not None:
+        historico.adicionar(Passo(
+            nivel=1,
+            descricao=f'dy/dx = {resultado.representacao_latex()}',
+            latex_depois=resultado.representacao_latex(),
+            regra='Derivada implicita - resultado',
+        ))
+
+    return resultado

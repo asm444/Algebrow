@@ -45,14 +45,20 @@ class NoExpressao:
                 'sin': '\\sin',
                 'cos': '\\cos',
                 'tan': '\\tan',
+                'arcsin': '\\arcsin',
+                'arccos': '\\arccos',
+                'arctan': '\\arctan',
                 'ln': '\\ln',
                 'exp': 'e',
                 'abs': '\\left|',
+                'sqrt': '\\sqrt',
             }
             if self.valor == 'exp':
                 return f'e^{{{arg}}}'
             if self.valor == 'abs':
                 return f'\\left|{arg}\\right|'
+            if self.valor == 'sqrt':
+                return f'\\sqrt{{{arg}}}'
             nome = nomes_latex.get(self.valor, f'\\operatorname{{{self.valor}}}')
             return f'{nome}\\left({arg}\\right)'
         return self.valor
@@ -84,9 +90,13 @@ class NoExpressao:
                 'sin': math.sin,
                 'cos': math.cos,
                 'tan': math.tan,
+                'arcsin': math.asin,
+                'arccos': math.acos,
+                'arctan': math.atan,
                 'ln': math.log,
                 'exp': math.exp,
                 'abs': abs,
+                'sqrt': math.sqrt,
             }
             if self.valor in funcoes:
                 return funcoes[self.valor](arg)

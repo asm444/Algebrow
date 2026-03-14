@@ -1,238 +1,211 @@
-# Plano: Física Matemática no Algebrow
+# Plano: Física-Matemática — Arfken + Butkov
 
-## Visão Geral
+## Referências
+- **Arfken** — Mathematical Methods for Physicists, 7th ed. (23 capítulos)
+- **Butkov** — Mathematical Physics (15 capítulos)
 
-Transformar o Algebrow numa plataforma que resolve problemas de física com passo-a-passo, usando o motor de cálculo simbólico como base. Cada módulo de física importa diretamente os módulos de cálculo (derivadas, integrais, EDOs, álgebra linear).
+## Mapeamento: O que já existe vs. o que falta
 
-## Dependências do Engine
+### JÁ IMPLEMENTADO no Algebrow
+| Tópico | Arfken | Módulo existente |
+|--------|--------|------------------|
+| Matrizes e determinantes | Cap 2 | engine/algebra_linear/ |
+| Autovalores | Cap 6 | engine/algebra_linear/autovalor.py |
+| EDOs | Cap 7 | engine/calculo/edo.py |
+| Variável complexa (parcial) | Cap 11 | engine/complexos/ (em andamento) |
+| Séries de Fourier (parcial) | Cap 19 | engine/calculo/serie.py |
+| Análise vetorial (parcial) | Cap 3 | engine/calculo/multivariavel.py |
+| PDEs (básico) | Cap 9 | — |
+| Cálculo de variações | Cap 22 | — |
 
-```
-engine/calculo/     → derivadas, integrais, limites, EDOs, séries
-engine/algebra/     → equações, sistemas, polinômios
-engine/algebra_linear/ → matrizes, determinantes, autovalores
-engine/basic/       → aritmética exata, passos
-```
-
-Toda física usa esses módulos — NÃO reimplementa cálculo.
-
----
-
-## Fase 6 — Mecânica Clássica (`engine/fisica/mecanica/`)
-
-### 6.1 Cinemática (`cinematica.py`)
-
-**Conceitos:**
-- MRU: s = s₀ + vt
-- MRUV: s = s₀ + v₀t + at²/2, v = v₀ + at
-- Lançamento oblíquo: decomposição em x e y
-- Queda livre: caso particular do MRUV com g
-
-**Implementação:**
-```python
-class MovimentoRetilineoUniforme:
-    def resolver(self, conhecidos: dict) -> tuple:
-        """Dado qualquer combinação de s, s0, v, t → calcula o faltante."""
-
-class MRUV:
-    def resolver(self, conhecidos: dict) -> tuple:
-        """5 equações do MRUV — detecta qual usar baseado nos dados."""
-
-class LancamentoObliquo:
-    def resolver(self, v0, angulo, g='9.8') -> tuple:
-        """Alcance, altura máxima, tempo de voo com passos."""
-```
-
-**Técnica de resolução:** Identificar variáveis conhecidas → selecionar equação → isolar incógnita via `Equacao1Grau`/`Equacao2Grau` → simplificar.
-
-### 6.2 Dinâmica (`dinamica.py`)
-
-**Conceitos:**
-- 2ª Lei de Newton: F = ma (sistemas com múltiplas forças)
-- Atrito: f = μN
-- Plano inclinado: decomposição de forças
-- Trabalho: W = ∫F·ds (usar integrar())
-- Energia cinética e potencial
-- Conservação de energia
-
-**Implementação:**
-```python
-class SistemaForcas:
-    def resolver(self, forcas: list, massa: str) -> tuple:
-        """Soma vetorial de forças → aceleração."""
-
-class PlanoInclinado:
-    def resolver(self, massa, angulo, mu=None) -> tuple:
-        """Decomposição de forças com/sem atrito."""
-
-class TrabalhoEnergia:
-    def trabalho(self, forca: NoExpressao, deslocamento) -> tuple:
-        """W = ∫F·ds usando integrar()."""
-```
-
-### 6.3 Oscilações (`oscilacoes.py`)
-
-**Conceitos:**
-- MHS: x'' + ω²x = 0 (usar edo_linear_2ordem_coef_cte)
-- Amortecido: x'' + 2γx' + ω²x = 0
-- Forçado: x'' + 2γx' + ω²x = F₀cos(ωt)
-- Ressonância
-
-**Implementação:** Delega para `engine/calculo/edo.py` — cada tipo de oscilação é uma EDO de 2ª ordem com coeficientes constantes.
-
-### 6.4 Gravitação (`gravitacao.py`)
-
-- Lei da gravitação universal
-- Órbitas circulares: igualar F_grav = F_centripeta
-- Energia potencial gravitacional
-- Velocidade de escape
+### FALTA IMPLEMENTAR
 
 ---
 
-## Fase 7 — Eletromagnetismo (`engine/fisica/eletromag/`)
+## Fase 6 — Números Complexos e Análise Complexa (Arfken Cap 11-12)
+**Status: Em andamento (agente rodando)**
 
-### 7.1 Eletrostática (`eletrostatica.py`)
-
-- Lei de Coulomb: F = kq₁q₂/r²
-- Campo elétrico: E = kq/r² (ponto), E = ∫dE (distribuição)
-- Potencial elétrico: V = -∫E·dl
-- Lei de Gauss: ∮E·dA = Q/ε₀ (usa integral de superfície)
-
-**Técnica:** Para distribuições contínuas, usar integrar() do engine.
-
-### 7.2 Circuitos (`circuitos.py`)
-
-- Lei de Ohm: V = RI
-- Kirchhoff: sistema de equações lineares (usa SistemaLinear)
-- RC, RL, RLC: EDOs de 1ª e 2ª ordem (usa edo.py)
-
-### 7.3 Magnetismo (`magnetismo.py`)
-
-- Biot-Savart: dB = μ₀I(dl × r̂)/(4πr²)
-- Lei de Ampère: ∮B·dl = μ₀I
-- Força de Lorentz: F = qv × B
-
-### 7.4 Equações de Maxwell (`maxwell.py`)
-
-- Forma diferencial: div, rot, gradiente (usa multivariavel.py)
-- Ondas EM: equação de onda (EDO 2ª ordem)
+- Classe Complexo com aritmética exata
+- Fórmula de Euler, De Moivre, raízes n-ésimas
+- Cauchy-Riemann, séries de Laurent, resíduos
+- Transformada de Laplace (tabela + resolução de EDOs)
 
 ---
 
-## Fase 8 — Termodinâmica (`engine/fisica/termodinamica/`)
+## Fase 7 — Funções Especiais (Arfken Cap 13-16, 18; Butkov Cap 9-11)
 
-### 8.1 Leis da Termodinâmica (`leis.py`)
+### 7.1 Função Gamma (`engine/funcoes_especiais/gamma.py`)
+- Γ(n) = (n-1)! para inteiros
+- Integral: Γ(z) = ∫₀^∞ t^(z-1) e^(-t) dt
+- Propriedades: Γ(z+1) = zΓ(z), Γ(1/2) = √π
+- Função Beta: B(a,b) = Γ(a)Γ(b)/Γ(a+b)
+- Fórmula de Stirling: n! ≈ √(2πn)(n/e)^n
 
-- 1ª Lei: ΔU = Q - W
-- Gás ideal: PV = nRT
-- Processos: isotérmico, isobárico, isocórico, adiabático
-- Trabalho: W = ∫PdV (usa integrar())
+### 7.2 Funções de Bessel (`engine/funcoes_especiais/bessel.py`)
+- EDO de Bessel: x²y'' + xy' + (x² - ν²)y = 0
+- Série de potências: J_ν(x) = Σ (-1)^k (x/2)^(2k+ν) / (k! Γ(k+ν+1))
+- Propriedades: relações de recorrência, ortogonalidade
+- Zeros de Bessel
+- Funções de Neumann Y_ν, Hankel H_ν
 
-### 8.2 Ciclos (`ciclos.py`)
+### 7.3 Polinômios de Legendre (`engine/funcoes_especiais/legendre.py`)
+- EDO de Legendre: (1-x²)y'' - 2xy' + l(l+1)y = 0
+- Fórmula de Rodrigues: P_l(x) = 1/(2^l l!) d^l/dx^l (x²-1)^l
+- Ortogonalidade: ∫₋₁¹ P_m(x) P_n(x) dx = 2δ_mn/(2n+1)
+- Harmônicos esféricos Y_l^m(θ,φ)
+- Polinômios associados de Legendre
 
-- Carnot: eficiência η = 1 - T_fria/T_quente
-- Otto, Diesel
-- Diagrama PV: usar gerar_pontos() para plotar
-
-### 8.3 Entropia (`entropia.py`)
-
-- ΔS = ∫dQ/T
-- 2ª Lei: ΔS_universo ≥ 0
-
----
-
-## Fase 9 — Mecânica Quântica Introdutória (`engine/fisica/quantica/`)
-
-### 9.1 Equação de Schrödinger (`schrodinger.py`)
-
-- Independente do tempo: -ℏ²/2m · ψ'' + V(x)ψ = Eψ
-- É uma EDO de 2ª ordem (usa edo.py)
-
-### 9.2 Potenciais (`potenciais.py`)
-
-- Poço infinito: ψ_n = √(2/L)·sin(nπx/L), E_n = n²π²ℏ²/(2mL²)
-- Barreira de potencial: coeficientes de transmissão/reflexão
-- Oscilador harmônico: níveis E_n = (n+1/2)ℏω
-
-### 9.3 Operadores (`operadores.py`)
-
-- Operador posição, momento
-- Comutadores: [x, p] = iℏ
-- Valores esperados: ⟨x⟩ = ∫ψ*xψ dx
+### 7.4 Polinômios de Hermite e Laguerre (`engine/funcoes_especiais/hermite_laguerre.py`)
+- Hermite: H_n(x) — oscilador harmônico quântico
+- Laguerre: L_n(x) — átomo de hidrogênio
+- Fórmulas de Rodrigues, ortogonalidade, funções geradoras
 
 ---
 
-## Arquitetura Proposta
+## Fase 8 — Teoria de Sturm-Liouville e Funções de Green (Arfken Cap 8, 10; Butkov Cap 7-8)
+
+### 8.1 Sturm-Liouville (`engine/edo_avancada/sturm_liouville.py`)
+- Problema de Sturm-Liouville: [p(x)y']' + [q(x) + λw(x)]y = 0
+- Autovalores e autofunções
+- Ortogonalidade das autofunções
+- Expansão em autofunções
+- Exemplos: Fourier, Bessel, Legendre como casos particulares
+
+### 8.2 Funções de Green (`engine/edo_avancada/green.py`)
+- Definição: LG(x,x') = δ(x-x')
+- Construção para EDOs de 2ª ordem
+- Green para equação do calor, onda, Laplace
+- Propriedades de simetria
+
+---
+
+## Fase 9 — Tensores e Geometria Diferencial (Arfken Cap 3-4; Butkov Cap 4)
+**Status: Em andamento (agente rodando)**
+
+### 9.1 Curvas
+- Curvatura, torção, triedro de Frenet-Serret
+
+### 9.2 Superfícies
+- Formas fundamentais, curvatura gaussiana e média
+
+### 9.3 Tensores (`engine/geometria_diferencial/tensores.py`)
+- Tensor métrico g_ij
+- Transformações de coordenadas
+- Símbolos de Christoffel: Γ^k_ij = ½g^kl(∂g_il/∂x^j + ∂g_jl/∂x^i - ∂g_ij/∂x^l)
+- Derivada covariante
+- Tensor de Riemann R^i_jkl (simplificado 2D)
+- Tensor de Ricci, escalar de curvatura
+
+### 9.4 Formas diferenciais (`engine/geometria_diferencial/formas.py`)
+- 0-formas (funções), 1-formas, 2-formas
+- Derivada exterior d
+- Produto wedge ∧
+- Teorema de Stokes generalizado
+
+---
+
+## Fase 10 — PDEs e Separação de Variáveis (Arfken Cap 9; Butkov Cap 7)
+
+### 10.1 PDEs clássicas (`engine/edp/`)
+- Equação do calor: ∂u/∂t = k∇²u
+- Equação da onda: ∂²u/∂t² = c²∇²u
+- Equação de Laplace: ∇²u = 0
+- Equação de Poisson: ∇²u = f
+
+### 10.2 Separação de variáveis
+- Coordenadas cartesianas
+- Coordenadas cilíndricas (→ Bessel)
+- Coordenadas esféricas (→ Legendre/harmônicos esféricos)
+
+### 10.3 Condições de contorno
+- Dirichlet, Neumann, mistas
+- Problemas de valor de contorno
+
+---
+
+## Fase 11 — Transformadas Integrais (Arfken Cap 20; Butkov Cap 6)
+
+### 11.1 Transformada de Fourier (`engine/fourier/`)
+- Definição, propriedades, convolução, Parseval
+- DFT discreta (para cálculo numérico)
+- Aplicações a PDEs
+
+### 11.2 Transformada de Laplace (já em complexos/)
+- Expandir: inversão por resíduos, convolução
+
+### 11.3 Outras transformadas
+- Hankel, Mellin (referência)
+
+---
+
+## Fase 12 — Cálculo de Variações e Equações Integrais (Arfken Cap 21-22)
+
+### 12.1 Cálculo de variações (`engine/variacional/`)
+- Funcional e extremos
+- Equação de Euler-Lagrange: ∂F/∂y - d/dx(∂F/∂y') = 0
+- Problemas com restrições (multiplicadores de Lagrange)
+- Braquistócrona, geodésicas
+- Princípio de Hamilton
+
+### 12.2 Equações integrais (`engine/integral_eq/`)
+- Fredholm de 1ª e 2ª espécie
+- Volterra
+- Método de séries de Neumann
+- Relação com Sturm-Liouville
+
+---
+
+## Fase 13 — Teoria de Grupos (Arfken Cap 5, 16-17)
+
+### 13.1 Espaços vetoriais (`engine/algebra_abstrata/`)
+- Espaços com produto interno
+- Operadores lineares
+- Bases ortonormais, Gram-Schmidt
+
+### 13.2 Grupos (introdutório)
+- Grupos de simetria
+- Representações matriciais
+- Momento angular (SU(2), SO(3))
+
+---
+
+## Arquitetura Final
 
 ```
-engine/fisica/
-├── __init__.py
-├── constantes.py          # c, ℏ, k_B, ε₀, μ₀, G, etc.
-├── unidades.py            # Conversão de unidades SI
-├── mecanica/
-│   ├── cinematica.py
-│   ├── dinamica.py
-│   ├── oscilacoes.py
-│   └── gravitacao.py
-├── eletromag/
-│   ├── eletrostatica.py
-│   ├── circuitos.py
-│   ├── magnetismo.py
-│   └── maxwell.py
-├── termodinamica/
-│   ├── leis.py
-│   ├── ciclos.py
-│   └── entropia.py
-└── quantica/
-    ├── schrodinger.py
-    ├── potenciais.py
-    └── operadores.py
+engine/
+├── basic/                     # Aritmética exata (existente)
+├── algebra/                   # Polinômios, equações (existente)
+├── algebra_linear/            # Matrizes, autovalores (existente)
+├── calculo/                   # Derivadas, integrais, EDOs (existente)
+├── complexos/                 # Análise complexa, Laplace (Fase 6)
+├── funcoes/                   # Funções elementares (existente)
+├── funcoes_especiais/         # Gamma, Bessel, Legendre, Hermite (Fase 7)
+├── geometria_diferencial/     # Curvas, superfícies, tensores (Fase 9)
+├── edo_avancada/              # Sturm-Liouville, Green (Fase 8)
+├── edp/                       # PDEs, separação de variáveis (Fase 10)
+├── fourier/                   # Séries e transformada de Fourier (Fase 11)
+├── variacional/               # Euler-Lagrange (Fase 12)
+├── integral_eq/               # Equações integrais (Fase 12)
+├── algebra_abstrata/          # Espaços vetoriais, grupos (Fase 13)
+├── parser.py
+└── solver.py
 ```
-
-## Princípio Central
-
-**Cada problema de física se reduz a um problema de cálculo:**
-- Cinemática → derivadas e integrais
-- Dinâmica → equações e sistemas
-- Oscilações → EDOs de 2ª ordem
-- Eletrostática → integrais
-- Circuitos → sistemas lineares
-- Termodinâmica → integrais
-- Quântica → EDOs + autovalores
-
-O Algebrow já tem TUDO isso implementado. A física é a camada de modelagem que traduz problemas do mundo real para objetos do engine.
 
 ## Ordem de Implementação
 
 ```
-Fase 6.1 (Cinemática)     — mais simples, usa apenas equações
+Fase 6  (Complexos)              ← em andamento
+Fase 9  (Geometria Diferencial)  ← em andamento
     ↓
-Fase 6.2 (Dinâmica)       — vetores + equações
+Fase 7  (Funções Especiais)      ← depende de EDOs + Complexos
     ↓
-Fase 6.3 (Oscilações)     — EDOs de 2ª ordem
+Fase 8  (Sturm-Liouville/Green) ← depende de Funções Especiais
     ↓
-Fase 7.1 (Eletrostática)  — integrais + vetores
+Fase 10 (PDEs)                   ← depende de Fourier + Funções Especiais
     ↓
-Fase 7.2 (Circuitos)      — sistemas lineares + EDOs
+Fase 11 (Transformadas)          ← depende de Complexos
     ↓
-Fase 8 (Termodinâmica)    — integrais + equações
+Fase 12 (Variacional/Integrais)  ← independente
     ↓
-Fase 9 (Quântica)         — EDOs + autovalores
+Fase 13 (Grupos)                 ← independente
 ```
-
-## Parser de Física
-
-Expandir o parser para reconhecer:
-- Unidades: `m/s`, `kg`, `N`, `J`, `C`, `V`
-- Constantes: `g`, `c`, `hbar`, `k`, `epsilon0`
-- Notação vetorial: `vec(F)`, `|F|`
-- Notação de derivada temporal: `x'(t)`, `x''(t)`
-
-## API de Física
-
-```
-POST /api/fisica/cinematica   { tipo: "mruv", dados: {v0: "10", a: "2", t: "5"} }
-POST /api/fisica/eletrostatica { tipo: "coulomb", dados: {q1: "1e-6", q2: "2e-6", r: "0.1"} }
-POST /api/fisica/edo          { tipo: "oscilador", dados: {omega: "2", gamma: "0.1"} }
-```
-
-Cada resposta inclui passo-a-passo com justificativa física + justificativa matemática.
