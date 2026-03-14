@@ -263,10 +263,11 @@ class FuncaoLogaritmica(FuncaoBase):
             return '0'
 
         # Verificar potências inteiras de b
+        max_iter = 1000
         if b_float > 1:
             potencia = b_float
             exp = 1
-            while potencia < x_float:
+            while potencia < x_float and exp < max_iter:
                 potencia *= b_float
                 exp += 1
             if abs(potencia - x_float) < 1e-12:
@@ -274,7 +275,7 @@ class FuncaoLogaritmica(FuncaoBase):
         elif 0 < b_float < 1:
             potencia = b_float
             exp = 1
-            while potencia > x_float:
+            while potencia > x_float and exp < max_iter:
                 potencia *= b_float
                 exp += 1
             if abs(potencia - x_float) < 1e-12:

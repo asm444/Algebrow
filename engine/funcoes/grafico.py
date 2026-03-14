@@ -4,7 +4,9 @@ Gera pontos (x, y) a partir de uma expressão matemática textual,
 detectando descontinuidades e assíntotas verticais.
 """
 
+import ast
 import math
+import operator
 
 # Namespace seguro para avaliação de expressões
 _NAMESPACE_SEGURO = {
@@ -67,20 +69,77 @@ def _preparar_expressao(expressao: str) -> str:
     return ''.join(resultado)
 
 
-def _avaliar_seguro(expressao_preparada: str, x: float) -> float | None:
-    """Avalia a expressão para um dado valor de x.
+_OPERADORES_BINARIOS = {
+    ast.Add: operator.add,
+    ast.Sub: operator.sub,
+    ast.Mult: operator.mul,
+    ast.Div: operator.truediv,
+    ast.Pow: operator.pow,
+    ast.FloorDiv: operator.floordiv,
+    ast.Mod: operator.mod,
+}
 
-    NOTA DE SEGURANÇA: eval() é usado aqui intencionalmente com __builtins__
-    desabilitado e namespace restrito a funções matemáticas puras.
-    A entrada é sanitizada e não há acesso a módulos, I/O ou funções perigosas.
+_OPERADORES_UNARIOS = {
+    ast.UAdd: operator.pos,
+    ast.USub: operator.neg,
+}
+
+
+def _avaliar_ast_seguro(node: ast.AST, namespace: dict) -> float:
+    """Percorre o AST e avalia apenas nós seguros (Num, BinOp, UnaryOp, Name, Call)."""
+    if isinstance(node, ast.Expression):
+        return _avaliar_ast_seguro(node.body, namespace)
+
+    if isinstance(node, ast.Constant):
+        if isinstance(node.value, (int, float)):
+            return float(node.value)
+        raise ValueError(f"Constante não numérica: {node.value!r}")
+
+    if isinstance(node, ast.Name):
+        if node.id in namespace:
+            return namespace[node.id]
+        raise ValueError(f"Nome não permitido: {node.id}")
+
+    if isinstance(node, ast.BinOp):
+        op_type = type(node.op)
+        if op_type not in _OPERADORES_BINARIOS:
+            raise ValueError(f"Operador binário não permitido: {op_type.__name__}")
+        esq = _avaliar_ast_seguro(node.left, namespace)
+        dir_ = _avaliar_ast_seguro(node.right, namespace)
+        return _OPERADORES_BINARIOS[op_type](esq, dir_)
+
+    if isinstance(node, ast.UnaryOp):
+        op_type = type(node.op)
+        if op_type not in _OPERADORES_UNARIOS:
+            raise ValueError(f"Operador unário não permitido: {op_type.__name__}")
+        operando = _avaliar_ast_seguro(node.operand, namespace)
+        return _OPERADORES_UNARIOS[op_type](operando)
+
+    if isinstance(node, ast.Call):
+        if not isinstance(node.func, ast.Name):
+            raise ValueError("Chamada de função não permitida (apenas nomes simples)")
+        nome_func = node.func.id
+        if nome_func not in namespace or not callable(namespace[nome_func]):
+            raise ValueError(f"Função não permitida: {nome_func}")
+        args = [_avaliar_ast_seguro(arg, namespace) for arg in node.args]
+        return namespace[nome_func](*args)
+
+    raise ValueError(f"Nó AST não permitido: {type(node).__name__}")
+
+
+def _avaliar_seguro(expressao_preparada: str, x: float) -> float | None:
+    """Avalia a expressão para um dado valor de x usando AST seguro.
+
+    Apenas nós seguros são aceitos: constantes numéricas, operações aritméticas,
+    nomes do namespace seguro e chamadas de funções do namespace.
 
     Returns:
         O valor float ou None se houver erro matemático.
     """
     namespace = {**_NAMESPACE_SEGURO, 'x': x}
     try:
-        # eval com builtins desabilitado — apenas funções matemáticas no namespace
-        resultado = eval(expressao_preparada, {"__builtins__": {}}, namespace)  # noqa: S307
+        tree = ast.parse(expressao_preparada, mode='eval')
+        resultado = _avaliar_ast_seguro(tree, namespace)
         if resultado is None:
             return None
         val = float(resultado)

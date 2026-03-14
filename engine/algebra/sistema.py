@@ -32,6 +32,7 @@ class SistemaLinear:
         matriz = []
         for i in range(self.n):
             linha = list(self.coeficientes[i]) + [self.constantes[i]]
+            matriz.append(linha)
         return matriz
 
     def _formato_matriz_latex(self, matriz: list[list[str]]) -> str:
@@ -179,6 +180,19 @@ class SistemaLinear:
 
             for j in range(i + 1, self.n):
                 valor = diff(valor, multi(matriz[i][j], solucoes[j]))
+
+            if matriz[i][i] == '0':
+                # Pivô zero indica sistema indeterminado ou impossível
+                historico.adicionar(Passo(
+                    nivel=1,
+                    descricao='Sistema indeterminado detectado na substituição reversa',
+                    justificativa=f'Pivô zero na linha {i + 1} impede a resolução única',
+                    metodo='Análise da matriz escalonada',
+                    latex_antes=self._formato_matriz_latex(matriz),
+                    latex_depois='\\text{Sistema indeterminado}',
+                    regra='Classificação de sistemas lineares'
+                ))
+                return ({}, 'indeterminado', historico)
 
             solucoes[i] = div(_como_fracao(valor), _como_fracao(matriz[i][i]))
 

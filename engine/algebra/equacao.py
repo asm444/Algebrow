@@ -28,11 +28,12 @@ class Equacao1Grau:
             partes.append(f'{self.a}x')
 
         if self.b != '0':
-            b_int = int(self.b)
-            if b_int > 0:
+            b_val = float(self.b.split('/')[0]) / float(self.b.split('/')[1]) if '/' in self.b else float(self.b)
+            if b_val > 0:
                 partes.append(f' + {self.b}')
             else:
-                partes.append(f' - {str(abs(b_int))}')
+                b_abs = self.b[1:] if self.b.startswith('-') else self.b
+                partes.append(f' - {b_abs}')
 
         return ''.join(partes) + ' = 0'
 
@@ -126,8 +127,8 @@ class Equacao2Grau:
 
         # Termo bx
         if self.b != '0':
-            b_int = int(self.b)
-            if b_int > 0:
+            b_val = float(self.b.split('/')[0]) / float(self.b.split('/')[1]) if '/' in self.b else float(self.b)
+            if b_val > 0:
                 if self.b == '1':
                     partes.append(' + x')
                 else:
@@ -136,15 +137,17 @@ class Equacao2Grau:
                 if self.b == '-1':
                     partes.append(' - x')
                 else:
-                    partes.append(f' - {str(abs(b_int))}x')
+                    b_abs = self.b[1:] if self.b.startswith('-') else self.b
+                    partes.append(f' - {b_abs}x')
 
         # Termo c
         if self.c != '0':
-            c_int = int(self.c)
-            if c_int > 0:
+            c_val = float(self.c.split('/')[0]) / float(self.c.split('/')[1]) if '/' in self.c else float(self.c)
+            if c_val > 0:
                 partes.append(f' + {self.c}')
             else:
-                partes.append(f' - {str(abs(c_int))}')
+                c_abs = self.c[1:] if self.c.startswith('-') else self.c
+                partes.append(f' - {c_abs}')
 
         return ''.join(partes) + ' = 0'
 
@@ -389,11 +392,11 @@ class _SolucaoSimbolica:
 def _raiz_latex_inline(coeficiente: str, radicando: str) -> str:
     """Gera representação inline de coeficiente·√radicando."""
     if coeficiente == '1':
-        return f'\\sqrt{{2}}{{{radicando}}}'
+        return f'\\sqrt{{{radicando}}}'
     elif coeficiente == '-1':
-        return f'-\\sqrt{{2}}{{{radicando}}}'
+        return f'-\\sqrt{{{radicando}}}'
     else:
-        return f'{coeficiente}\\sqrt{{2}}{{{radicando}}}'
+        return f'{coeficiente}\\sqrt{{{radicando}}}'
 
 
 def _construir_solucao_com_raiz(parte_racional: str, coef_raiz: str, radicando: str, positivo: bool):
