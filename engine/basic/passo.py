@@ -9,14 +9,19 @@ class Passo:
             3 = detalhes aritméticos (ex: '216 = 2³ × 3³')
             4 = micro-operações (ex: '216 ÷ 2 = 108')
         descricao: texto em PT-BR descrevendo o que foi feito
+        justificativa: porquê este passo foi necessário
+        metodo: como a operação foi realizada
         latex_antes: representação LaTeX antes da transformação
         latex_depois: representação LaTeX depois da transformação
         regra: nome da regra matemática aplicada
     """
 
-    def __init__(self, nivel, descricao, latex_antes='', latex_depois='', regra=''):
+    def __init__(self, nivel, descricao, latex_antes='', latex_depois='',
+                 regra='', justificativa='', metodo=''):
         self.nivel = nivel
         self.descricao = descricao
+        self.justificativa = justificativa
+        self.metodo = metodo
         self.latex_antes = latex_antes
         self.latex_depois = latex_depois
         self.regra = regra
@@ -30,6 +35,10 @@ class Passo:
             'descricao': self.descricao,
             'regra': self.regra,
         }
+        if self.justificativa:
+            resultado['justificativa'] = self.justificativa
+        if self.metodo:
+            resultado['metodo'] = self.metodo
         if self.latex_antes:
             resultado['latex_antes'] = self.latex_antes
         if self.latex_depois:
@@ -40,11 +49,12 @@ class Passo:
 class Historico:
     """Acumula passos durante uma resolução e filtra por verbosidade.
 
-    Uso:
-        hist = Historico(verbosidade=2)
-        hist.adicionar(Passo(nivel=1, descricao='Fatorar', ...))
-        hist.adicionar(Passo(nivel=3, descricao='Detalhe', ...))
-        passos = hist.filtrar()  # retorna apenas passos com nivel <= 2
+    Níveis de verbosidade:
+        0 = Apenas resultado final (sem passos)
+        1 = Passos principais (interpretar, resultado)
+        2 = Passos intermediários (fatoração, extração, propriedades)
+        3 = Detalhes aritméticos (fatoração prima, cálculos)
+        4 = Micro-operações (cada divisão, cada multiplicação)
     """
 
     def __init__(self, verbosidade=3):
