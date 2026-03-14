@@ -5,6 +5,15 @@ from engine.basic.numeros import Racional, Raiz, frac_latex
 from engine.basic.passo import Passo, Historico
 
 
+def _para_float(s) -> float:
+    """Converte string para float, tratando frações como '1/3'."""
+    s = str(s)
+    if '/' in s:
+        partes = s.split('/')
+        return float(partes[0]) / float(partes[1])
+    return float(s)
+
+
 def _dividir_como_fracao(numerador: str, denominador: str) -> str:
     """Divide dois valores retornando fração simplificada (nunca decimal)."""
     return reduz_fracao(f'{numerador}/{denominador}')
@@ -28,7 +37,7 @@ class Equacao1Grau:
             partes.append(f'{self.a}x')
 
         if self.b != '0':
-            b_val = float(self.b.split('/')[0]) / float(self.b.split('/')[1]) if '/' in self.b else float(self.b)
+            b_val = _para_float(self.b)
             if b_val > 0:
                 partes.append(f' + {self.b}')
             else:
@@ -127,7 +136,7 @@ class Equacao2Grau:
 
         # Termo bx
         if self.b != '0':
-            b_val = float(self.b.split('/')[0]) / float(self.b.split('/')[1]) if '/' in self.b else float(self.b)
+            b_val = _para_float(self.b)
             if b_val > 0:
                 if self.b == '1':
                     partes.append(' + x')
@@ -142,7 +151,7 @@ class Equacao2Grau:
 
         # Termo c
         if self.c != '0':
-            c_val = float(self.c.split('/')[0]) / float(self.c.split('/')[1]) if '/' in self.c else float(self.c)
+            c_val = _para_float(self.c)
             if c_val > 0:
                 partes.append(f' + {self.c}')
             else:
@@ -193,7 +202,7 @@ class Equacao2Grau:
             metodo=f'Δ = ({self.b})² - 4·({self.a})·({self.c}) = {b_quadrado} - {quatro_ac} = {delta}'
         ))
 
-        delta_float = float(delta)
+        delta_float = _para_float(delta)
 
         # Passo 3: Analisar discriminante
         if delta_float < 0:

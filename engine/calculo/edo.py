@@ -9,7 +9,9 @@ Métodos implementados:
 - Método de Euler (numérico)
 """
 
+import ast
 import math
+import operator
 
 from engine.calculo.arvore import NoExpressao, num, var, op, func
 from engine.calculo.derivada import derivar, simplificar_no
@@ -23,32 +25,80 @@ def _copiar_no(no: NoExpressao) -> NoExpressao:
     return NoExpressao(no.tipo, no.valor, filhos)
 
 
+# Namespace seguro para avaliação de expressões em EDOs
+_NAMESPACE_SEGURO_EDO = {
+    'sin': math.sin, 'cos': math.cos, 'tan': math.tan,
+    'exp': math.exp, 'log': math.log, 'sqrt': math.sqrt,
+    'abs': abs, 'pi': math.pi, 'e': math.e,
+}
+
+_OPERADORES_BINARIOS_EDO = {
+    ast.Add: operator.add,
+    ast.Sub: operator.sub,
+    ast.Mult: operator.mul,
+    ast.Div: operator.truediv,
+    ast.Pow: operator.pow,
+    ast.FloorDiv: operator.floordiv,
+    ast.Mod: operator.mod,
+}
+
+_OPERADORES_UNARIOS_EDO = {
+    ast.UAdd: operator.pos,
+    ast.USub: operator.neg,
+}
+
+
+def _avaliar_ast_seguro_edo(node: ast.AST, namespace: dict) -> float:
+    """Percorre o AST e avalia apenas nós seguros (Constant, BinOp, UnaryOp, Name, Call)."""
+    if isinstance(node, ast.Expression):
+        return _avaliar_ast_seguro_edo(node.body, namespace)
+
+    if isinstance(node, ast.Constant):
+        if isinstance(node.value, (int, float)):
+            return float(node.value)
+        raise ValueError(f"Constante não numérica: {node.value!r}")
+
+    if isinstance(node, ast.Name):
+        if node.id in namespace:
+            return namespace[node.id]
+        raise ValueError(f"Nome não permitido: {node.id}")
+
+    if isinstance(node, ast.BinOp):
+        op_type = type(node.op)
+        if op_type not in _OPERADORES_BINARIOS_EDO:
+            raise ValueError(f"Operador binário não permitido: {op_type.__name__}")
+        esq = _avaliar_ast_seguro_edo(node.left, namespace)
+        dir_ = _avaliar_ast_seguro_edo(node.right, namespace)
+        return _OPERADORES_BINARIOS_EDO[op_type](esq, dir_)
+
+    if isinstance(node, ast.UnaryOp):
+        op_type = type(node.op)
+        if op_type not in _OPERADORES_UNARIOS_EDO:
+            raise ValueError(f"Operador unário não permitido: {op_type.__name__}")
+        operando = _avaliar_ast_seguro_edo(node.operand, namespace)
+        return _OPERADORES_UNARIOS_EDO[op_type](operando)
+
+    if isinstance(node, ast.Call):
+        if not isinstance(node.func, ast.Name):
+            raise ValueError("Chamada de função não permitida (apenas nomes simples)")
+        nome_func = node.func.id
+        if nome_func not in namespace or not callable(namespace[nome_func]):
+            raise ValueError(f"Função não permitida: {nome_func}")
+        args = [_avaliar_ast_seguro_edo(arg, namespace) for arg in node.args]
+        return namespace[nome_func](*args)
+
+    raise ValueError(f"Nó AST não permitido: {type(node).__name__}")
+
+
 def _avaliar_expressao_segura(expressao: str, x: float, y: float) -> float:
-    """Avalia uma expressão matemática string de forma restrita.
+    """Avalia uma expressão matemática string de forma segura via AST.
 
     Apenas permite variáveis x, y e funções matemáticas seguras.
-    Não expõe builtins nem módulos.
+    Percorre o AST validando cada nó — sem uso de eval().
     """
-    permitidos = {
-        'x': x, 'y': y,
-        'sin': math.sin, 'cos': math.cos, 'tan': math.tan,
-        'exp': math.exp, 'log': math.log, 'sqrt': math.sqrt,
-        'abs': abs, 'pi': math.pi, 'e': math.e,
-    }
-    # Compilar a expressão para validar sintaxe antes de avaliar
-    codigo = compile(expressao, '<edo>', 'eval')
-    # Verificar que não há nomes proibidos nos nomes usados
-    for nome in codigo.co_names:
-        if nome not in permitidos:
-            raise ValueError(f"Nome não permitido na expressão: '{nome}'")
-    return float(codigo.co_consts[0]) if not codigo.co_names and len(codigo.co_consts) == 1 \
-        else float(_eval_compilado(codigo, permitidos))
-
-
-def _eval_compilado(codigo, namespace: dict) -> float:
-    """Executa código compilado em namespace restrito."""
-    # Usar eval com builtins desabilitados e namespace controlado
-    return eval(codigo, {"__builtins__": {}}, namespace)  # noqa: S307 — namespace restrito
+    namespace = {**_NAMESPACE_SEGURO_EDO, 'x': x, 'y': y}
+    tree = ast.parse(expressao, mode='eval')
+    return float(_avaliar_ast_seguro_edo(tree, namespace))
 
 
 def edo_separavel(f_x: NoExpressao, g_y: NoExpressao,

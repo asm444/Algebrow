@@ -86,12 +86,12 @@ def soma(valor1: str, valor2: str) -> str:
                 if '.' not in valor2:
                     decimais = valor1.split('.')[1]
                 else:
-                    if valor2.split('.')[1] < valor1.split('.')[1]:
+                    if len(valor2.split('.')[1]) < len(valor1.split('.')[1]):
                         decimais = valor1.split('.')[1]
                     else:
                         decimais = valor2.split('.')[1]
             return inteiro(str(round(float(valor1)+float(valor2),len(decimais))))
-            
+
         else:
             numerador1, denominador1 = converter_em_fracao(valor1).split('/')
             numerador2, denominador2 = valor2.split('/')
@@ -121,7 +121,7 @@ def diff(valor1: str, valor2:str) -> str:
                 if '.' not in valor2:
                     decimais = valor1.split('.')[1]
                 else:
-                    if valor2.split('.')[1] < valor1.split('.')[1]:
+                    if len(valor2.split('.')[1]) < len(valor1.split('.')[1]):
                         decimais = valor1.split('.')[1]
                     else:
                         decimais = valor2.split('.')[1]
@@ -158,7 +158,7 @@ def multi(valor1: str, valor2: str) -> float:
                     if '.' not in valor2:
                         decimais = valor1.split('.')[1]
                     else:
-                        decimais = valor2.split('.')[1]+valor1.split('.')[1]
+                        decimais = valor2.split('.')[1] + valor1.split('.')[1]
                 return inteiro(str(round(float(valor1)*float(valor2),len(decimais))))
             else:
                 numerador1, denominador1 = converter_em_fracao(valor1).split('/')
@@ -222,6 +222,8 @@ def div(valor1: str, valor2: str) -> float:
 
 def fatorial(valor: int) -> int:
     """Fatorial na forma não integral, confia será útil."""
+    if valor < 0:
+        raise ValueError("Fatorial não definido para negativos")
     if valor == 0 or valor == 1:
         return 1
     else:
@@ -246,13 +248,15 @@ def multiplos_comuns(valores: list) -> set:
             intersecao = intersecao & conjunto
         return intersecao
 
-def converter_em_fracao(n: str) -> str: 
+def converter_em_fracao(n: str) -> str:
     """
-    Inicialmente projetado para converter qualquer dizimias em fração. 
-    A ideias é converter qualquer número de ponto flutuante em fração. 
-    Lógico que função não será aplicada em números irracionais. 
+    Inicialmente projetado para converter qualquer dizimias em fração.
+    A ideias é converter qualquer número de ponto flutuante em fração.
+    Lógico que função não será aplicada em números irracionais.
     Números irracionais são mais faceis de criar, precisiveis e não serão uma preocupação.
     """
+    original = n
+
     if '/' in n:
         return n
 
@@ -294,7 +298,7 @@ def converter_em_fracao(n: str) -> str:
     numerador, denominador = fracao_resultante.split('/')
 
     if numerador > 1000000000 or denominador > 1000000000:
-        return n  #Quase irracional ou multiplos comuns são primos absurdamente grandes. Há um erro na conta se chegar com esse número até aqui.
+        return original  #Quase irracional ou multiplos comuns são primos absurdamente grandes. Há um erro na conta se chegar com esse número até aqui.
     
     return fracao_resultante
 
