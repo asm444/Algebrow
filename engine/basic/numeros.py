@@ -233,6 +233,12 @@ class Racional:
     def numero_real(self):
         return basic_operations.div(self.numerador,self.denominador)
 
+    def simplificar(self):
+        resultado = simplificar(self)
+        if resultado is not self:
+            return resultado
+        return self
+
 ### Capacidade de potencia (36 -> 6^2; 144)
 def number_to_potencia(number):
     multiplos_contados = {}
