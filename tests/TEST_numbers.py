@@ -1,7 +1,6 @@
-import unittest, tests.progress_bar as progress_bar
-
-# Adiciona o diretório pai ao path
-from basic.numbers import *
+import unittest
+from tests import progress_bar
+from engine.basic.numeros import *
 
 class Simplificao(unittest.TestCase):
 
@@ -18,13 +17,13 @@ class Simplificao(unittest.TestCase):
         
     def test_simplificar_raiz_de_reduzir_radicando_de_mesmo_multiplo(self):
 
-        self.assertEqual(simplificar(Raiz('2','216')).representacao_latex(),  "6\sqrt{2}{6}")
-        self.assertEqual(simplificar(Raiz('7','16777216')).representacao_latex(), "8\sqrt{7}{8}")
+        self.assertEqual(simplificar(Raiz('2','216')).representacao_latex(),  "6\\sqrt{2}{6}")
+        self.assertEqual(simplificar(Raiz('7','16777216')).representacao_latex(), "8\\sqrt{7}{8}")
 
     def test_simplificar_raiz_de_reduzir_radicando_composto(self):
 
-        self.assertEqual(simplificar(Raiz('2','2160')).representacao_latex(),  "12\sqrt{2}{15}")
-        self.assertEqual(simplificar(Raiz('5','125')).representacao_latex(), "\sqrt{5}{125}")
+        self.assertEqual(simplificar(Raiz('2','2160')).representacao_latex(),  "12\\sqrt{2}{15}")
+        self.assertEqual(simplificar(Raiz('5','125')).representacao_latex(), "\\sqrt{5}{125}")
 
     def test_simplificar_raiz_reduzir_gigantes(self):
 
@@ -33,8 +32,8 @@ class Simplificao(unittest.TestCase):
 
     def test_simplificar_raiz_devolver_irredutivel(self):
 
-        self.assertEqual(simplificar(Raiz('2','3')).representacao_latex(),  "\sqrt{2}{3}")
-        self.assertEqual(simplificar(Raiz('3','25')).representacao_latex(), "\sqrt{3}{25}")
+        self.assertEqual(simplificar(Raiz('2','3')).representacao_latex(),  "\\sqrt{2}{3}")
+        self.assertEqual(simplificar(Raiz('3','25')).representacao_latex(), "\\sqrt{3}{25}")
 
     def test_simplificar_raiz_um_ou_zero_em_inteiro(self):
 
@@ -79,13 +78,13 @@ class Simplificao(unittest.TestCase):
 
     def test_simplificar_logaritmando_irredutivel(self):
 
-        self.assertEqual(simplificar(Logaritmo('2','3')).representacao_latex(),  "\log_{2}{3}")
-        self.assertEqual(simplificar(Logaritmo('12','5')).representacao_latex(), "\log_{12}{5}")
+        self.assertEqual(simplificar(Logaritmo('2','3')).representacao_latex(),  "\\log_{2}{3}")
+        self.assertEqual(simplificar(Logaritmo('12','5')).representacao_latex(), "\\log_{12}{5}")
 
     def test_simplificar_logaritmando_redutivel(self):
 
-        self.assertEqual(simplificar(Logaritmo('3','144')).representacao_latex(),  "2\log_{3}{12}")
-        self.assertEqual(simplificar(Logaritmo('2','36')).representacao_latex(), "2\log_{2}{6}")
+        self.assertEqual(simplificar(Logaritmo('3','144')).representacao_latex(),  "2\\log_{3}{12}")
+        self.assertEqual(simplificar(Logaritmo('2','36')).representacao_latex(), "2\\log_{2}{6}")
 
     def test_simplificar_logaritmando_base_um_ou_zero(self):
 

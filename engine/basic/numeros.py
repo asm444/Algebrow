@@ -1,4 +1,4 @@
-from basic import basic_operations
+from engine.basic import operacoes_basicas as basic_operations
 
 #Representação LaTeX
 simbolo = {

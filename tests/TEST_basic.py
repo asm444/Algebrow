@@ -1,8 +1,6 @@
-import sys, unittest, os, progress_bar
-
-# Adiciona o diretório pai ao path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from basic.basic_operations import soma, diff, multi, div
+import unittest
+from tests import progress_bar
+from engine.basic.operacoes_basicas import soma, diff, multi, div
 
 class Operacoes_Basicas(unittest.TestCase):
 
