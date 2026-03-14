@@ -82,9 +82,20 @@ def tokenizar(texto):
 class Parser:
     """Parser descendente recursivo para expressões matemáticas."""
 
+    MAX_PROFUNDIDADE = 50
+
     def __init__(self, tokens):
         self.tokens = tokens
         self.pos = 0
+        self._profundidade = 0
+
+    def _entrar(self):
+        self._profundidade += 1
+        if self._profundidade > self.MAX_PROFUNDIDADE:
+            raise ParserError("Expressão excede a profundidade máxima permitida (50 níveis)")
+
+    def _sair(self):
+        self._profundidade -= 1
 
     def peek(self):
         return self.tokens[self.pos]
@@ -104,94 +115,110 @@ class Parser:
 
     def expressao(self):
         """expressao := termo (('+' | '-') termo)*"""
-        esquerda = self.termo()
+        self._entrar()
+        try:
+            esquerda = self.termo()
 
-        while self.peek()[0] in ('+', '-'):
-            op = self.consume()
-            direita = self.termo()
-            if op[0] == '+':
-                esquerda = soma(esquerda, direita)
-            else:
-                esquerda = subtracao(esquerda, direita)
+            while self.peek()[0] in ('+', '-'):
+                op = self.consume()
+                direita = self.termo()
+                if op[0] == '+':
+                    esquerda = soma(esquerda, direita)
+                else:
+                    esquerda = subtracao(esquerda, direita)
 
-        return esquerda
+            return esquerda
+        finally:
+            self._sair()
 
     def termo(self):
         """termo := fator (('*' | '/') fator)*"""
-        esquerda = self.fator()
+        self._entrar()
+        try:
+            esquerda = self.fator()
 
-        while self.peek()[0] in ('*', '/'):
-            op = self.consume()
-            direita = self.fator()
-            if op[0] == '*':
-                esquerda = multiplicacao(esquerda, direita)
-            else:
-                # Divisão: converte para fração
-                if (esquerda.tipo_de_numero == 'racional' and
-                        direita.tipo_de_numero == 'racional'):
-                    from engine.basic import operacoes_basicas as ops
-                    resultado = ops.div(esquerda.return_number(), direita.return_number())
-                    return Racional(resultado)
-                esquerda = multiplicacao(esquerda, direita)
+            while self.peek()[0] in ('*', '/'):
+                op = self.consume()
+                direita = self.fator()
+                if op[0] == '*':
+                    esquerda = multiplicacao(esquerda, direita)
+                else:
+                    # Divisão: converte para fração
+                    if (esquerda.tipo_de_numero == 'racional' and
+                            direita.tipo_de_numero == 'racional'):
+                        from engine.basic import operacoes_basicas as ops
+                        resultado = ops.div(esquerda.return_number(), direita.return_number())
+                        return Racional(resultado)
+                    esquerda = multiplicacao(esquerda, direita)
 
-        return esquerda
+            return esquerda
+        finally:
+            self._sair()
 
     def fator(self):
         """fator := atomo ('^' fator)?"""
-        base = self.atomo()
+        self._entrar()
+        try:
+            base = self.atomo()
 
-        if self.peek()[0] == '^':
-            self.consume('^')
-            expoente = self.fator()
-            # Se ambos são racionais inteiros, criar Exponencial
-            if (base.tipo_de_numero == 'racional' and
-                    expoente.tipo_de_numero == 'racional'):
-                return Exponencial(base.return_number(), expoente.return_number())
-            raise ParserError("Exponencial com base/expoente não-racional ainda não suportado")
+            if self.peek()[0] == '^':
+                self.consume('^')
+                expoente = self.fator()
+                # Se ambos são racionais inteiros, criar Exponencial
+                if (base.tipo_de_numero == 'racional' and
+                        expoente.tipo_de_numero == 'racional'):
+                    return Exponencial(base.return_number(), expoente.return_number())
+                raise ParserError("Exponencial com base/expoente não-racional ainda não suportado")
 
-        return base
+            return base
+        finally:
+            self._sair()
 
     def atomo(self):
         """atomo := numero | fracao | sqrt(...) | log_b(...) | '(' expr ')' | '-' fator"""
-        tipo, valor = self.peek()
+        self._entrar()
+        try:
+            tipo, valor = self.peek()
 
-        # Número negativo (unário)
-        if tipo == '-':
-            self.consume('-')
-            operando = self.fator()
-            if operando.tipo_de_numero == 'racional':
+            # Número negativo (unário)
+            if tipo == '-':
+                self.consume('-')
+                operando = self.fator()
+                if operando.tipo_de_numero == 'racional':
+                    from engine.basic import operacoes_basicas as ops
+                    return Racional(ops.multi('-1', operando.return_number()))
+                # Para irracionais, inverte o coeficiente
                 from engine.basic import operacoes_basicas as ops
-                return Racional(ops.multi('-1', operando.return_number()))
-            # Para irracionais, inverte o coeficiente
-            from engine.basic import operacoes_basicas as ops
-            novo_coef = ops.multi('-1', operando.coeficiente)
-            if operando.tipo_de_numero == 'raiz':
-                return Raiz(operando.return_indice(), operando.return_radicando(), novo_coef)
-            elif operando.tipo_de_numero == 'exponencial':
-                return Exponencial(operando.return_base(), operando.return_expoente(), novo_coef)
-            elif operando.tipo_de_numero == 'logaritmo':
-                return Logaritmo(operando.return_base(), operando.return_logaritmando(), novo_coef)
+                novo_coef = ops.multi('-1', operando.coeficiente)
+                if operando.tipo_de_numero == 'raiz':
+                    return Raiz(operando.return_indice(), operando.return_radicando(), novo_coef)
+                elif operando.tipo_de_numero == 'exponencial':
+                    return Exponencial(operando.return_base(), operando.return_expoente(), novo_coef)
+                elif operando.tipo_de_numero == 'logaritmo':
+                    return Logaritmo(operando.return_base(), operando.return_logaritmando(), novo_coef)
 
-        # Número (pode ser parte de fração: "3/4")
-        if tipo == 'NUM':
-            return self._parse_numero()
+            # Número (pode ser parte de fração: "3/4")
+            if tipo == 'NUM':
+                return self._parse_numero()
 
-        # sqrt(...) ou sqrt_n(...)
-        if tipo == 'SQRT':
-            return self._parse_raiz()
+            # sqrt(...) ou sqrt_n(...)
+            if tipo == 'SQRT':
+                return self._parse_raiz()
 
-        # log_b(...) ou log(...)
-        if tipo == 'LOG':
-            return self._parse_logaritmo()
+            # log_b(...) ou log(...)
+            if tipo == 'LOG':
+                return self._parse_logaritmo()
 
-        # Parênteses
-        if tipo == '(':
-            self.consume('(')
-            resultado = self.expressao()
-            self.consume(')')
-            return resultado
+            # Parênteses
+            if tipo == '(':
+                self.consume('(')
+                resultado = self.expressao()
+                self.consume(')')
+                return resultado
 
-        raise ParserError(f"Token inesperado: '{tipo}' ('{valor}')")
+            raise ParserError(f"Token inesperado: '{tipo}' ('{valor}')")
+        finally:
+            self._sair()
 
     def _parse_numero(self):
         """Parse número inteiro, decimal ou fração (3/4)."""

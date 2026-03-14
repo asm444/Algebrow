@@ -1,3 +1,10 @@
-__pycache__/*
-tests/__pycache__/*
-basic/__pycache__/*__pycache__/
+__pycache__/
+tests/__pycache__/
+basic/__pycache__/
+venv/
+.env
+*.pyc
+dist/
+.vscode/
+.idea/
+*.egg-info/

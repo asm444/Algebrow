@@ -1,7 +1,15 @@
 ############# Variáveis
 from os import path
+from math import gcd
 ROOT_DIR = path.dirname(path.dirname(path.dirname(path.abspath(__file__))))
 primos = path.join(ROOT_DIR, "data", "primos.txt")
+
+# Cache de primos carregado uma única vez no module-level
+def _carregar_primos():
+    with open(primos, 'r') as f:
+        return [int(linha.strip()) for linha in f if linha.strip()]
+
+_PRIMOS_CACHE = _carregar_primos()
 
 def inteiro(numero):
     ponto = float(numero)
@@ -223,15 +231,11 @@ def multiplos_comuns(valores: list) -> set:
     if isinstance(valores,str) or isinstance(valores,int):
         divisores = []
         n = int(valores)
-        with open(primos, 'r') as f:
-            for linha in f:
-                p = int(linha.strip())
-                if p > n:
-                    break
-                elif n % p == 0:
-                    divisores.append(p)
-                elif p >1000000000:
-                    raise ValueError("Há algum erro na conta, não é possível.")
+        for p in _PRIMOS_CACHE:
+            if p > n:
+                break
+            elif n % p == 0:
+                divisores.append(p)
         return divisores
 
     else:
@@ -295,35 +299,26 @@ def converter_em_fracao(n: str) -> str:
     return fracao_resultante
 
 def reduz_fracao(fracao: str) -> str:
-    """Simplifica frações. É uma função recursiva, tome cuidado onde implementar."""
-    partes = fracao.split('/')   
+    """Simplifica frações usando math.gcd (sem recursão)."""
+    partes = fracao.split('/')
     numerador = int(float(partes[0]))
-    if numerador == '0':
+    if numerador == 0:
         return '0'
     denominador = int(float(partes[1]))
 
-    negativo = False
-    if numerador<0:
-        negativo = True
-        numerador *= -1
+    # Tratamento de sinal: negativo vai pro numerador
+    negativo = (numerador < 0) ^ (denominador < 0)
+    numerador = abs(numerador)
+    denominador = abs(denominador)
 
-    comuns = multiplos_comuns([numerador, denominador])
-    if comuns:
-        for divisor in comuns:
-            numerador //= divisor
-            denominador //= divisor
-        if negativo:
-            return reduz_fracao(f"-{numerador}/{denominador}")
-        else:
-            return reduz_fracao(f"{numerador}/{denominador}")
+    d = gcd(numerador, denominador)
+    numerador //= d
+    denominador //= d
+
+    if negativo:
+        numerador = -numerador
+
+    if denominador == 1:
+        return f"{numerador}"
     else:
-        if denominador==1:
-            if negativo:
-                return f"-{numerador}"
-            else:
-                return f"{numerador}"
-        else:
-            if negativo:
-                return f"-{numerador}/{denominador}"
-            else:
-                return f"{numerador}/{denominador}"        
+        return f"{numerador}/{denominador}"        

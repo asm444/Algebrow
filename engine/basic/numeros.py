@@ -241,23 +241,33 @@ class Racional:
 
 ### Capacidade de potencia (36 -> 6^2; 144)
 def number_to_potencia(number):
+    """Fatoração por trial division direta usando cache de primos em memória."""
+    from engine.basic.operacoes_basicas import _PRIMOS_CACHE
     multiplos_contados = {}
-    novo_numero = number
-    while novo_numero!=1:
-        multiplos_comuns = basic_operations.multiplos_comuns(novo_numero)
-        if not multiplos_comuns:
+    n = int(number)
+
+    for p in _PRIMOS_CACHE:
+        if p * p > n:
             break
-        else:
-            multiplo = str(multiplos_comuns[0])
-        if multiplo in multiplos_contados:
-            multiplos_contados[multiplo] +=1
-        else:
-            multiplos_contados[multiplo] =1
+        while n % p == 0:
+            sp = str(p)
+            if sp in multiplos_contados:
+                multiplos_contados[sp] += 1
+            else:
+                multiplos_contados[sp] = 1
+            n //= p
 
-        novo_numero = str(int(float(basic_operations.div(novo_numero, multiplo))))
+    # Se sobrou fator primo maior que sqrt(number)
+    if n > 1:
+        sn = str(n)
+        if sn in multiplos_contados:
+            multiplos_contados[sn] += 1
+        else:
+            multiplos_contados[sn] = 1
 
-    for base in multiplos_contados.keys(): #Ps o algoritmo só trabalha com string.
-        multiplos_contados[base] = str(multiplos_contados[base]) 
+    # Converter contagens para string (o algoritmo trabalha com strings)
+    for base in multiplos_contados:
+        multiplos_contados[base] = str(multiplos_contados[base])
 
     return multiplos_contados
 

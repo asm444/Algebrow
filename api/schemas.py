@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field
 
 
 class CalcularRequest(BaseModel):
-    expressao: str = Field(..., description="Expressão matemática em texto", examples=["sqrt(216)", "3/4 + 1/4", "log_3(9)"])
+    expressao: str = Field(..., max_length=500, description="Expressão matemática em texto", examples=["sqrt(216)", "3/4 + 1/4", "log_3(9)"])
     modo: str = Field(default="simplificar", description="Modo de resolução", examples=["simplificar"])
     verbosidade: int = Field(default=3, ge=0, le=4, description="Nível de detalhe dos passos (0=resultado, 4=micro-operações)")
 

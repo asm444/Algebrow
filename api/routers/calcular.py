@@ -39,3 +39,12 @@ def calcular(req: CalcularRequest):
             passos=[],
             erro=f"Erro matemático: {str(e)}",
         )
+    except Exception:
+        return CalcularResponse(
+            entrada=req.expressao,
+            latex_entrada=req.expressao,
+            latex_resultado="",
+            valor_numerico="",
+            passos=[],
+            erro="Erro interno",
+        )
