@@ -206,3 +206,204 @@ class TestIgualdade:
     def test_igualdade_com_outro_tipo(self):
         p = Polinomio({'1': '1'})
         assert p != 42
+
+
+# ============================================================
+# Testes para SistemaLinear e Inequacao1Grau
+# ============================================================
+
+from engine.algebra.sistema import SistemaLinear
+from engine.algebra.inequacao import Inequacao1Grau
+
+
+class TestSistemaLinear:
+    def test_sistema_2x2_determinado(self):
+        # x + y = 5, x - y = 1 → x=3, y=2
+        sistema = SistemaLinear(
+            coeficientes=[['1', '1'], ['1', '-1']],
+            constantes=['5', '1']
+        )
+        solucoes, classificacao, historico = sistema.resolver()
+        assert classificacao == 'determinado'
+        assert solucoes['x'] == '3'
+        assert solucoes['y'] == '2'
+        assert len(historico) > 0
+
+    def test_sistema_2x2_impossivel(self):
+        # x + y = 1, x + y = 2 → impossível
+        sistema = SistemaLinear(
+            coeficientes=[['1', '1'], ['1', '1']],
+            constantes=['1', '2']
+        )
+        solucoes, classificacao, historico = sistema.resolver()
+        assert classificacao == 'impossivel'
+        assert solucoes == {}
+
+    def test_sistema_2x2_indeterminado(self):
+        # x + y = 2, 2x + 2y = 4 → indeterminado
+        sistema = SistemaLinear(
+            coeficientes=[['1', '1'], ['2', '2']],
+            constantes=['2', '4']
+        )
+        solucoes, classificacao, historico = sistema.resolver()
+        assert classificacao == 'indeterminado'
+        assert solucoes == {}
+
+    def test_sistema_3x3(self):
+        # x + y + z = 6, 2x + y - z = 1, x - y + z = 2
+        sistema = SistemaLinear(
+            coeficientes=[['1', '1', '1'], ['2', '1', '-1'], ['1', '-1', '1']],
+            constantes=['6', '1', '2']
+        )
+        solucoes, classificacao, historico = sistema.resolver()
+        assert classificacao == 'determinado'
+        # Verificar que as soluções satisfazem o sistema
+        x, y, z = solucoes['x'], solucoes['y'], solucoes['z']
+        # x + y + z = 6
+        from engine.basic.operacoes_basicas import soma
+        assert soma(soma(x, y), z) == '6'
+        # 2x + y - z = 1
+        from engine.basic.operacoes_basicas import diff, multi
+        assert diff(soma(multi('2', x), y), z) == '1'
+        # x - y + z = 2
+        assert soma(diff(x, y), z) == '2'
+
+    def test_sistema_2x2_com_fracoes(self):
+        # 2x + 3y = 7, x - y = 1 → x=2, y=1
+        sistema = SistemaLinear(
+            coeficientes=[['2', '3'], ['1', '-1']],
+            constantes=['7', '1']
+        )
+        solucoes, classificacao, historico = sistema.resolver()
+        assert classificacao == 'determinado'
+        assert solucoes['x'] == '2'
+        assert solucoes['y'] == '1'
+
+
+class TestInequacao1Grau:
+    def test_2x_mais_6_maior_0(self):
+        # 2x + 6 > 0 → x > -3
+        ineq = Inequacao1Grau('2', '6', '>')
+        resultado, historico = ineq.resolver()
+        assert resultado == 'x > -3'
+        assert len(historico) > 0
+
+    def test_inverter_sinal(self):
+        # -2x + 6 > 0 → x < 3
+        ineq = Inequacao1Grau('-2', '6', '>')
+        resultado, historico = ineq.resolver()
+        assert resultado == 'x < 3'
+
+    def test_menor_igual(self):
+        # 3x - 9 <= 0 → x <= 3
+        ineq = Inequacao1Grau('3', '-9', '<=')
+        resultado, historico = ineq.resolver()
+        assert resultado == 'x <= 3'
+
+    def test_resultado_fracao(self):
+        # 3x + 2 > 0 → x > -2/3
+        ineq = Inequacao1Grau('3', '2', '>')
+        resultado, historico = ineq.resolver()
+        assert resultado == 'x > -2/3'
+
+    def test_operador_invalido(self):
+        with pytest.raises(ValueError):
+            Inequacao1Grau('1', '2', '==')
+
+
+# ==================== Testes de Equações 1º e 2º Grau ====================
+
+from engine.algebra.equacao import Equacao1Grau, Equacao2Grau
+from engine.basic.numeros import Racional
+from engine.basic.passo import Historico
+
+
+class TestEquacao1Grau:
+    def test_2x_mais_6_igual_0(self):
+        """2x + 6 = 0 -> x = -3"""
+        eq = Equacao1Grau('2', '6')
+        solucao, historico = eq.resolver()
+        assert isinstance(solucao, Racional)
+        assert solucao.return_number() == '-3'
+        assert solucao.representacao_latex() == '-3'
+
+    def test_3x_menos_9_igual_0(self):
+        """3x - 9 = 0 -> x = 3"""
+        eq = Equacao1Grau('3', '-9')
+        solucao, historico = eq.resolver()
+        assert isinstance(solucao, Racional)
+        assert solucao.return_number() == '3'
+
+    def test_fracao_resultado(self):
+        """3x + 2 = 0 -> x = -2/3"""
+        eq = Equacao1Grau('3', '2')
+        solucao, historico = eq.resolver()
+        assert isinstance(solucao, Racional)
+        assert solucao.return_number() == '-2/3'
+        assert '\\frac' in solucao.representacao_latex()
+
+    def test_a_zero_levanta_erro(self):
+        """a = 0 não é equação de 1º grau."""
+        eq = Equacao1Grau('0', '5')
+        with pytest.raises(ValueError):
+            eq.resolver()
+
+    def test_historico_tem_passos(self):
+        """Verificar que o histórico contém passos."""
+        eq = Equacao1Grau('2', '6')
+        solucao, historico = eq.resolver()
+        assert isinstance(historico, Historico)
+        assert len(historico) >= 3
+
+
+class TestEquacao2Grau:
+    def test_x2_menos_5x_mais_6(self):
+        """x² - 5x + 6 = 0 -> x1 = 3, x2 = 2"""
+        eq = Equacao2Grau('1', '-5', '6')
+        solucoes, historico = eq.resolver()
+        assert len(solucoes) == 2
+        valores = {s.return_number() for s in solucoes}
+        assert '3' in valores
+        assert '2' in valores
+
+    def test_raiz_dupla(self):
+        """x² - 4x + 4 = 0 -> x = 2 (raiz dupla)"""
+        eq = Equacao2Grau('1', '-4', '4')
+        solucoes, historico = eq.resolver()
+        assert len(solucoes) == 1
+        assert isinstance(solucoes[0], Racional)
+        assert solucoes[0].return_number() == '2'
+
+    def test_discriminante_negativo(self):
+        """x² + x + 1 = 0 -> ValueError (delta < 0)"""
+        eq = Equacao2Grau('1', '1', '1')
+        with pytest.raises(ValueError, match='[Dd]iscriminante'):
+            eq.resolver()
+
+    def test_com_passos(self):
+        """Verificar que o histórico tem passos preenchidos."""
+        eq = Equacao2Grau('1', '-5', '6')
+        solucoes, historico = eq.resolver()
+        assert isinstance(historico, Historico)
+        assert len(historico) >= 3
+        for passo in historico.todos():
+            assert passo.justificativa != ''
+            assert passo.metodo != ''
+
+    def test_coeficientes_maiores(self):
+        """2x² - 8x + 6 = 0 -> x1 = 3, x2 = 1"""
+        eq = Equacao2Grau('2', '-8', '6')
+        solucoes, historico = eq.resolver()
+        assert len(solucoes) == 2
+        valores = {s.return_number() for s in solucoes}
+        assert '3' in valores
+        assert '1' in valores
+
+    def test_representacao_latex_solucoes(self):
+        """Soluções devem ter representacao_latex()."""
+        eq = Equacao2Grau('1', '-5', '6')
+        solucoes, historico = eq.resolver()
+        for s in solucoes:
+            latex = s.representacao_latex()
+            assert isinstance(latex, str)
+            assert len(latex) > 0
