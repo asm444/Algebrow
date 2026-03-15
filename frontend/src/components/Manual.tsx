@@ -84,6 +84,44 @@ const CATEGORIAS: CategoriaManual[] = [
       { latex: '5x \\leq 20', entrada: '5x \\leq 20', descricao: 'Menor ou igual (\\leq)' },
     ],
   },
+  {
+    titulo: 'Derivadas',
+    descricao: 'Derivação simbólica com regra da cadeia, produto, quociente.',
+    exemplos: [
+      { latex: '\\frac{d}{dx} x^{3}', entrada: '\\frac{d}{dx} x^{3}', descricao: 'Derivada de x³ → 3x²' },
+      { latex: '\\frac{d}{dx} \\sin(x)', entrada: '\\frac{d}{dx} \\sin(x)', descricao: 'Derivada de sin(x) → cos(x)' },
+      { latex: '\\frac{d}{dx} e^{x}', entrada: '\\frac{d}{dx} e^{x}', descricao: 'Derivada de eˣ → eˣ' },
+      { latex: '\\frac{d}{dx} \\ln(x)', entrada: '\\frac{d}{dx} \\ln(x)', descricao: 'Derivada de ln(x) → 1/x' },
+      { latex: '\\frac{d}{dx} \\cos(x)', entrada: '\\frac{d}{dx} \\cos(x)', descricao: 'Derivada de cos(x) → -sin(x)' },
+      { latex: '\\frac{d}{dx} \\tan(x)', entrada: '\\frac{d}{dx} \\tan(x)', descricao: 'Derivada de tan(x) → sec²(x)' },
+      { latex: '\\frac{d^{2}}{dx^{2}} x^{4}', entrada: '\\frac{d^{2}}{dx^{2}} x^{4}', descricao: 'Segunda derivada de x⁴' },
+      { latex: '\\frac{d}{dx}\\left(x^{2} + \\sin(x)\\right)', entrada: '\\frac{d}{dx}\\left(x^{2} + \\sin(x)\\right)', descricao: 'Derivada de expressão composta' },
+    ],
+  },
+  {
+    titulo: 'Integrais',
+    descricao: 'Integração simbólica — indefinida e definida com limites.',
+    exemplos: [
+      { latex: '\\int x^{2} \\, dx', entrada: '\\int x^{2} \\, dx', descricao: 'Integral de x² → x³/3 + C' },
+      { latex: '\\int \\sin(x) \\, dx', entrada: '\\int \\sin(x) \\, dx', descricao: 'Integral de sin(x) → -cos(x) + C' },
+      { latex: '\\int e^{x} \\, dx', entrada: '\\int e^{x} \\, dx', descricao: 'Integral de eˣ → eˣ + C' },
+      { latex: '\\int \\cos(x) \\, dx', entrada: '\\int \\cos(x) \\, dx', descricao: 'Integral de cos(x) → sin(x) + C' },
+      { latex: '\\int x^{3} \\, dx', entrada: '\\int x^{3} \\, dx', descricao: 'Integral de x³ → x⁴/4 + C' },
+      { latex: '\\int_{0}^{1} x^{2} \\, dx', entrada: '\\int_{0}^{1} x^{2} \\, dx', descricao: 'Integral definida [0,1] → 1/3' },
+      { latex: '\\int_{0}^{\\pi} \\sin(x) \\, dx', entrada: '\\int_{0}^{\\pi} \\sin(x) \\, dx', descricao: 'Integral de 0 a π → 2' },
+      { latex: '\\int_{-1}^{1} x^{3} \\, dx', entrada: '\\int_{-1}^{1} x^{3} \\, dx', descricao: 'Função ímpar em intervalo simétrico → 0' },
+    ],
+  },
+  {
+    titulo: 'Limites',
+    descricao: 'Limites com substituição direta, L\'Hôpital, e no infinito.',
+    exemplos: [
+      { latex: '\\lim_{x \\to 0} \\frac{\\sin(x)}{x}', entrada: '\\lim_{x \\to 0} \\frac{\\sin(x)}{x}', descricao: 'Limite clássico → 1 (L\'Hôpital)' },
+      { latex: '\\lim_{x \\to 2} x^{2}', entrada: '\\lim_{x \\to 2} x^{2}', descricao: 'Substituição direta → 4' },
+      { latex: '\\lim_{x \\to \\infty} \\frac{1}{x}', entrada: '\\lim_{x \\to \\infty} \\frac{1}{x}', descricao: 'Limite no infinito → 0' },
+      { latex: '\\lim_{x \\to 0^{+}} \\frac{1}{x}', entrada: '\\lim_{x \\to 0^{+}} \\frac{1}{x}', descricao: 'Limite lateral pela direita → ∞' },
+    ],
+  },
 ];
 
 function LatexPreview({ latex }: { latex: string }) {

@@ -199,7 +199,9 @@ def derivar(no: NoExpressao, variavel: str = 'x', historico: Historico = None) -
                 )
                 d_base = derivar(esq, variavel, historico)
                 # n * base^(n-1) * d_base (regra da cadeia)
-                novo_exp = num(str(n - 1))
+                n_menos_1 = n - 1
+                n_menos_1_str = str(int(n_menos_1)) if n_menos_1 == int(n_menos_1) else str(n_menos_1)
+                novo_exp = num(n_menos_1_str)
                 resultado = op('*', op('*', dir_, op('^', esq, novo_exp)), d_base)
                 return simplificar_no(resultado)
 

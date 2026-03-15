@@ -1,10 +1,28 @@
-"""Solver: resolve expressões e captura passos de resolução.
+"""Solver unificado: resolve expressões de TODAS as 16 fases.
 
-Fluxo: texto → parse → simplificar → registrar passos → resultado
+Fluxo: LaTeX/texto → converter_latex → detector → roteamento → resultado com passos
+
+Fases suportadas:
+    0-1: Básico (aritmética, frações, raízes, potências, logaritmos)
+    2:   Álgebra (equações, sistemas, polinômios, inequações)
+    3:   Funções e gráficos
+    4-7: Cálculo (derivadas, integrais, limites, séries, EDOs, multivariável)
+    5:   Álgebra linear (matrizes, determinantes, autovalores)
+    6:   Complexos (aritmética, polar, Laplace)
+    8:   Funções especiais (Gamma, Bessel, Legendre)
+    9:   Geometria diferencial (curvatura, Frenet)
+    10:  Sturm-Liouville, Green
+    11:  EDPs (calor, onda, Laplace)
+    12:  Fourier (séries, transformada)
+    13:  Cálculo variacional (Euler-Lagrange)
+    14:  Equações integrais (Fredholm, Volterra)
+    15:  Tensores (métrico, Christoffel, Riemann)
+    16:  Teoria de grupos (finitos, Lie)
 """
 
 from engine.parser import parsear
 from engine.latex_converter import converter_latex
+from engine.detector import detectar
 from engine.basic.passo import Passo, Historico
 from engine.basic.numeros import (
     Racional, Raiz, Exponencial, Logaritmo,
@@ -23,7 +41,12 @@ class ResultadoCalculo:
         self.resultado = resultado
         self.historico = historico
         self.latex_entrada = latex_entrada
-        self.latex_resultado = resultado.representacao_latex() if hasattr(resultado, 'representacao_latex') else str(resultado)
+        if resultado is not None and hasattr(resultado, 'representacao_latex'):
+            self.latex_resultado = resultado.representacao_latex()
+        elif valor_numerico:
+            self.latex_resultado = str(valor_numerico)
+        else:
+            self.latex_resultado = ''
         self.valor_numerico = valor_numerico
 
     def serializar(self):
@@ -64,14 +87,231 @@ class Solver:
                 metodo='Conversor LaTeX → sintaxe Algebrow'
             ))
 
+        # Passo 1: Detectar tipo de operação
+        operacao = detectar(entrada_convertida)
+
+        # Passo 2: Rotear para o engine correto
+        if operacao['tipo'] != 'basico':
+            return self._resolver_operacao(operacao, entrada_original, historico)
+
+        # Fallback: expressão básica (Fases 0-2)
+        try:
+            return self._resolver_basico(entrada_convertida, entrada_original, historico)
+        except Exception as e:
+            historico.adicionar(Passo(
+                nivel=0,
+                descricao=f'Erro ao processar expressão básica: {str(e)}',
+                regra='erro',
+            ))
+            return ResultadoCalculo(
+                entrada=entrada_original, resultado=None,
+                historico=historico,
+                latex_entrada=entrada_original, valor_numerico='',
+            )
+
+    def _resolver_operacao(self, operacao, entrada_original, historico):
+        """Roteia operações de cálculo para as ferramentas corretas."""
+        tipo = operacao['tipo']
+
+        try:
+            # --- Derivadas (Fase 4-7) ---
+            if tipo == 'derivada':
+                from engine.ferramentas.derivada import calcular_derivada
+                r = calcular_derivada(operacao['expressao'], operacao['variavel'], self.verbosidade)
+                return ResultadoCalculo(
+                    entrada=entrada_original, resultado=r['resultado'],
+                    historico=r['historico'],
+                    latex_entrada=r['latex_entrada'], valor_numerico='',
+                )
+
+            if tipo == 'derivada_ordem':
+                from engine.ferramentas.derivada import calcular_derivada_ordem
+                r = calcular_derivada_ordem(operacao['expressao'], operacao['variavel'],
+                                            operacao['ordem'], self.verbosidade)
+                return ResultadoCalculo(
+                    entrada=entrada_original, resultado=r['resultado'],
+                    historico=r['historico'],
+                    latex_entrada=r['latex_entrada'], valor_numerico='',
+                )
+
+            if tipo == 'derivada_implicita':
+                from engine.ferramentas.derivada import calcular_derivada_implicita
+                r = calcular_derivada_implicita(operacao['expressao'], operacao['var_x'],
+                                                operacao['var_y'], self.verbosidade)
+                return ResultadoCalculo(
+                    entrada=entrada_original, resultado=r['resultado'],
+                    historico=r['historico'],
+                    latex_entrada=r['latex_entrada'], valor_numerico='',
+                )
+
+            # --- Integrais (Fase 4-7) ---
+            if tipo == 'integral':
+                from engine.ferramentas.integral import calcular_integral
+                r = calcular_integral(operacao['expressao'], operacao['variavel'], self.verbosidade)
+                return ResultadoCalculo(
+                    entrada=entrada_original, resultado=r['resultado'],
+                    historico=r['historico'],
+                    latex_entrada=r['latex_entrada'], valor_numerico='',
+                )
+
+            if tipo == 'integral_definida':
+                from engine.ferramentas.integral import calcular_integral_definida
+                r = calcular_integral_definida(
+                    operacao['expressao'], operacao['variavel'],
+                    operacao['inferior'], operacao['superior'], self.verbosidade
+                )
+                rc = ResultadoCalculo(
+                    entrada=entrada_original, resultado=r.get('resultado'),
+                    historico=r['historico'],
+                    latex_entrada=r['latex_entrada'],
+                    valor_numerico=r.get('valor', ''),
+                )
+                rc.latex_resultado = r.get('valor', r.get('latex', ''))
+                return rc
+
+            # --- Limites (Fase 4-7) ---
+            if tipo == 'limite':
+                from engine.ferramentas.limite import calcular_limite
+                r = calcular_limite(operacao['expressao'], operacao['variavel'],
+                                    operacao['valor'], self.verbosidade)
+                return ResultadoCalculo(
+                    entrada=entrada_original, resultado=None,
+                    historico=r['historico'],
+                    latex_entrada=r['latex_entrada'],
+                    valor_numerico=r.get('valor', ''),
+                )
+
+            if tipo == 'limite_lateral':
+                from engine.ferramentas.limite import calcular_limite_lateral
+                r = calcular_limite_lateral(operacao['expressao'], operacao['variavel'],
+                                            operacao['valor'], operacao['lado'], self.verbosidade)
+                return ResultadoCalculo(
+                    entrada=entrada_original, resultado=None,
+                    historico=r['historico'],
+                    latex_entrada=r['latex_entrada'],
+                    valor_numerico=r.get('valor', ''),
+                )
+
+            # --- Séries (Fase 4-7) ---
+            if tipo == 'taylor':
+                from engine.ferramentas.serie import calcular_taylor
+                r = calcular_taylor(operacao['expressao'], operacao['variavel'],
+                                    operacao['ponto'], operacao['ordem'], self.verbosidade)
+                return ResultadoCalculo(
+                    entrada=entrada_original, resultado=r.get('resultado'),
+                    historico=r['historico'],
+                    latex_entrada=r['latex_entrada'], valor_numerico='',
+                )
+
+            # --- Funções Especiais (Fase 8) ---
+            if tipo == 'gamma':
+                from engine.ferramentas.funcoes_especiais import calcular_gamma
+                r = calcular_gamma(operacao['argumento'], self.verbosidade)
+                return ResultadoCalculo(
+                    entrada=entrada_original, resultado=None,
+                    historico=r['historico'],
+                    latex_entrada=r['latex_entrada'],
+                    valor_numerico=r.get('valor', ''),
+                )
+
+            # --- Álgebra Linear (Fase 5) ---
+            if tipo == 'determinante':
+                from engine.ferramentas.algebra_linear import calcular_determinante
+                r = calcular_determinante(operacao['matriz_texto'], self.verbosidade)
+                return ResultadoCalculo(
+                    entrada=entrada_original, resultado=None,
+                    historico=r['historico'],
+                    latex_entrada=r['latex_entrada'],
+                    valor_numerico=r.get('valor', ''),
+                )
+
+            if tipo == 'autovalores':
+                from engine.ferramentas.algebra_linear import calcular_autovalores
+                r = calcular_autovalores(operacao['matriz_texto'], self.verbosidade)
+                return ResultadoCalculo(
+                    entrada=entrada_original, resultado=None,
+                    historico=r['historico'],
+                    latex_entrada=r['latex_entrada'],
+                    valor_numerico='',
+                )
+
+            # --- Gradiente, Jacobiana, Hessiana (Fase 7) ---
+            if tipo == 'gradiente':
+                from engine.ferramentas.multivariavel import calcular_gradiente
+                r = calcular_gradiente(operacao['expressao'], operacao['variaveis'], self.verbosidade)
+                return ResultadoCalculo(
+                    entrada=entrada_original, resultado=None,
+                    historico=r['historico'],
+                    latex_entrada=r['latex_entrada'], valor_numerico='',
+                )
+
+            # --- Aplicações (Fase 7) ---
+            if tipo in ('maxmin', 'volume_revolucao', 'comprimento_arco'):
+                from engine.ferramentas.aplicacoes import resolver_aplicacao
+                r = resolver_aplicacao(operacao, self.verbosidade)
+                return ResultadoCalculo(
+                    entrada=entrada_original, resultado=None,
+                    historico=r['historico'],
+                    latex_entrada=r['latex_entrada'],
+                    valor_numerico=r.get('valor', ''),
+                )
+
+            # --- Complexos (Fase 6) ---
+            if tipo in ('complexo', 'polar', 'laplace'):
+                from engine.ferramentas.complexo import resolver_complexo
+                r = resolver_complexo(operacao, self.verbosidade)
+                return ResultadoCalculo(
+                    entrada=entrada_original, resultado=None,
+                    historico=r['historico'],
+                    latex_entrada=r['latex_entrada'],
+                    valor_numerico=r.get('valor', ''),
+                )
+
+            # --- Fourier (Fase 12) ---
+            if tipo in ('fourier', 'transformada_fourier'):
+                from engine.ferramentas.fourier import resolver_fourier
+                r = resolver_fourier(operacao, self.verbosidade)
+                return ResultadoCalculo(
+                    entrada=entrada_original, resultado=None,
+                    historico=r['historico'],
+                    latex_entrada=r['latex_entrada'], valor_numerico='',
+                )
+
+            # Operação reconhecida mas ferramenta ainda não implementada
+            historico_fallback = Historico(verbosidade=self.verbosidade)
+            historico_fallback.adicionar(Passo(
+                nivel=0,
+                descricao=f'Operação "{tipo}" reconhecida mas não disponível via frontend ainda',
+                regra='nao_implementado',
+            ))
+            return ResultadoCalculo(
+                entrada=entrada_original, resultado=None,
+                historico=historico_fallback,
+                latex_entrada=entrada_original, valor_numerico='',
+            )
+
+        except Exception as e:
+            historico.adicionar(Passo(
+                nivel=0,
+                descricao=f'Erro ao processar: {str(e)}',
+                regra='erro',
+            ))
+            return ResultadoCalculo(
+                entrada=entrada_original, resultado=None,
+                historico=historico,
+                latex_entrada=entrada_original, valor_numerico='',
+            )
+
+    def _resolver_basico(self, entrada_convertida, entrada_original, historico):
+        """Resolve expressão básica (Fases 0-2)."""
         # Passo 1: Parse
         objeto = parsear(entrada_convertida)
-        latex_entrada = objeto.representacao_latex() if hasattr(objeto, 'representacao_latex') else entrada
+        latex_entrada = objeto.representacao_latex() if hasattr(objeto, 'representacao_latex') else entrada_original
 
         historico.adicionar(Passo(
             nivel=1,
             descricao='Interpretar expressão',
-            latex_antes=entrada,
+            latex_antes=entrada_original,
             latex_depois=latex_entrada,
             regra='parse',
             justificativa='Converter a entrada de texto para representação matemática',
@@ -98,7 +338,7 @@ class Solver:
             ))
 
         return ResultadoCalculo(
-            entrada=entrada,
+            entrada=entrada_original,
             resultado=resultado,
             historico=historico,
             latex_entrada=latex_entrada,

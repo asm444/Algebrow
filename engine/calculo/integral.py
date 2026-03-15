@@ -117,13 +117,15 @@ def _integrar_interno(no: NoExpressao, variavel: str, historico: Historico = Non
                     )
                     return func('ln', func('abs', var(variavel)))
                 novo_exp = n + 1
+                # Formatar sem .0 quando é inteiro
+                novo_exp_str = str(int(novo_exp)) if novo_exp == int(novo_exp) else str(novo_exp)
                 _passo(
-                    f'Regra da potencia: {variavel}^{dir_.valor} -> {variavel}^{novo_exp}/{novo_exp}',
+                    f'Regra da potencia: {variavel}^{dir_.valor} -> {variavel}^{novo_exp_str}/{novo_exp_str}',
                     latex_antes=f'\\int {latex_expr} \\, d{variavel}',
                     regra='Potencia',
                 )
                 return simplificar_no(
-                    op('/', op('^', var(variavel), num(str(novo_exp))), num(str(novo_exp)))
+                    op('/', op('^', var(variavel), num(novo_exp_str)), num(novo_exp_str))
                 )
 
         # 1/x -> ln|x|
