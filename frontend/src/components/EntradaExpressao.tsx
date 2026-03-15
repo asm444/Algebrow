@@ -4,13 +4,22 @@ import katex from 'katex';
 interface Props {
   onResolver: (expressao: string, verbosidade: number) => void;
   carregando: boolean;
+  expressaoExterna?: string;
 }
 
-export function EntradaExpressao({ onResolver, carregando }: Props) {
+export function EntradaExpressao({ onResolver, carregando, expressaoExterna }: Props) {
   const [expressao, setExpressao] = useState('');
   const [verbosidade, setVerbosidade] = useState(3);
   const previewRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Receber expressão do Manual
+  useEffect(() => {
+    if (expressaoExterna) {
+      setExpressao(expressaoExterna);
+      inputRef.current?.focus();
+    }
+  }, [expressaoExterna]);
 
   // Preview LaTeX em tempo real (katex.render sanitiza a saída internamente)
   useEffect(() => {
@@ -26,7 +35,9 @@ export function EntradaExpressao({ onResolver, carregando }: Props) {
     }
 
     try {
-      const latex = textoParaLatexPreview(texto);
+      // Se já contém comandos LaTeX, renderiza diretamente; senão, converte a sintaxe interna
+      const ehLatex = texto.includes('\\');
+      const latex = ehLatex ? texto : textoParaLatexPreview(texto);
       katex.render(latex, previewRef.current, { throwOnError: false, displayMode: true });
     } catch {
       previewRef.current.textContent = texto;
@@ -58,7 +69,7 @@ export function EntradaExpressao({ onResolver, carregando }: Props) {
           value={expressao}
           onChange={e => setExpressao(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="sqrt(216), 2^3 + log_3(9), 3/4 + 1/4 ..."
+          placeholder="\frac{3}{4} + \sqrt{2}, \log_{2}{8}, 2^{10} ..."
           className="input-expressao"
           autoFocus
         />

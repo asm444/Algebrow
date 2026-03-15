@@ -4,6 +4,7 @@ Fluxo: texto → parse → simplificar → registrar passos → resultado
 """
 
 from engine.parser import parsear
+from engine.latex_converter import converter_latex
 from engine.basic.passo import Passo, Historico
 from engine.basic.numeros import (
     Racional, Raiz, Exponencial, Logaritmo,
@@ -42,14 +43,29 @@ class Solver:
         self.verbosidade = verbosidade
 
     def resolver(self, entrada):
-        """Resolve uma expressão textual e retorna ResultadoCalculo."""
+        """Resolve uma expressão textual (sintaxe interna ou LaTeX puro) e retorna ResultadoCalculo."""
         if not entrada or not entrada.strip():
             raise ValueError("Expressão vazia")
 
         historico = Historico(verbosidade=self.verbosidade)
 
+        # Passo 0: Converter LaTeX → sintaxe interna (se necessário)
+        entrada_original = entrada.strip()
+        entrada_convertida = converter_latex(entrada_original)
+
+        if entrada_convertida != entrada_original:
+            historico.adicionar(Passo(
+                nivel=1,
+                descricao='Converter LaTeX para sintaxe interna',
+                latex_antes=entrada_original,
+                latex_depois=entrada_convertida,
+                regra='latex_para_engine',
+                justificativa='A entrada em LaTeX foi traduzida para a sintaxe do engine',
+                metodo='Conversor LaTeX → sintaxe Algebrow'
+            ))
+
         # Passo 1: Parse
-        objeto = parsear(entrada.strip())
+        objeto = parsear(entrada_convertida)
         latex_entrada = objeto.representacao_latex() if hasattr(objeto, 'representacao_latex') else entrada
 
         historico.adicionar(Passo(

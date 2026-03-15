@@ -3,7 +3,7 @@
   <img src="https://img.shields.io/badge/react-18+-61DAFB?style=for-the-badge&logo=react&logoColor=black" />
   <img src="https://img.shields.io/badge/fastapi-0.100+-009688?style=for-the-badge&logo=fastapi&logoColor=white" />
   <img src="https://img.shields.io/badge/zero_deps-engine-ff6b6b?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/testes-549_passando-brightgreen?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/testes-585_passando-brightgreen?style=for-the-badge" />
 </p>
 
 # Algebrow
@@ -19,7 +19,7 @@
 
 Algebrow é um **CAS** (Computer Algebra System) construído do zero em Python — sem NumPy, sem SymPy, sem dependências externas no motor matemático. Toda a aritmética é feita com strings para preservar precisão arbitrária.
 
-A plataforma web (FastAPI + React + KaTeX) permite digitar uma expressão como `sqrt(216)` e ver instantaneamente:
+A plataforma web (FastAPI + React + KaTeX) permite digitar uma expressão em **LaTeX puro** como `\sqrt{216}` (ou sintaxe simplificada `sqrt(216)`) e ver instantaneamente:
 
 ```
 √216  →  6√6  ≈ 14.6969...
@@ -72,8 +72,13 @@ npm run dev
 from engine.solver import Solver
 
 s = Solver(verbosidade=3)
-r = s.resolver('sqrt(216)')
 
+# Aceita LaTeX puro:
+r = s.resolver(r'\frac{3}{4} + \frac{1}{6}')
+print(r.latex_resultado)     # \frac{11}{12}
+
+# Ou sintaxe simplificada:
+r = s.resolver('sqrt(216)')
 print(r.latex_resultado)     # 6\sqrt{2}{6}
 print(r.valor_numerico)      # 14.69693846
 for p in r.historico.filtrar():
@@ -88,7 +93,39 @@ python -m pytest tests/TEST_numbers.py tests/TEST_basic.py tests/TEST_expression
 
 ---
 
-## Expressões suportadas
+## Entrada LaTeX
+
+O Algebrow aceita **LaTeX puro** como entrada. O sistema detecta e converte automaticamente:
+
+| Operação | LaTeX | Sintaxe Simples | Exemplo |
+|----------|-------|-----------------|---------|
+| Fração | `\frac{3}{4}` | `3/4` | ¾ |
+| Raiz quadrada | `\sqrt{216}` | `sqrt(216)` | 6√6 |
+| Raiz n-ésima | `\sqrt[3]{8}` | `sqrt_3(8)` | 2 |
+| Potência | `2^{10}` | `2^10` | 1024 |
+| Logaritmo | `\log_{2}{8}` | `log_2(8)` | 3 |
+| Multiplicação | `\cdot` ou `\times` | `*` | — |
+| Maior/igual | `\geq` | `>=` | — |
+| Menor/igual | `\leq` | `<=` | — |
+
+**Ambas as sintaxes são aceitas.** Cole expressões direto do Overleaf, copie de PDFs, ou use a sintaxe simplificada.
+
+> Manual completo com todos os exemplos: [`docs/MANUAL_LATEX.md`](docs/MANUAL_LATEX.md)
+
+### Exemplos de uso com LaTeX
+
+```latex
+\frac{3}{4} + \frac{1}{6}          % → 11/12
+\sqrt{216}                          % → 6√6
+\sqrt[3]{27}                        % → 3
+\log_{2}{8}                         % → 3
+2^{10}                              % → 1024
+\frac{2}{3} \cdot \frac{5}{7}      % → 10/21
+x^{2} - 5x + 6 = 0                 % → x₁=2, x₂=3
+2x + 1 \geq 5                      % → x ≥ 2
+```
+
+### Expressões suportadas (sintaxe simplificada)
 
 | Tipo | Sintaxe | Exemplo |
 |------|---------|---------|
@@ -170,7 +207,8 @@ Algebrow/
 │   │   ├── expressao.py           # Expressão + tabela 4×4 de operações
 │   │   └── passo.py               # Passo + Historico com verbosidade 0-4
 │   ├── parser.py                  # Parser descendente recursivo
-│   └── solver.py                  # Solver com passo-a-passo
+│   ├── latex_converter.py         # Conversor LaTeX puro → sintaxe interna
+│   └── solver.py                  # Solver com passo-a-passo (aceita LaTeX)
 │
 ├── api/                       # FastAPI (única camada com dependências externas)
 │   ├── main.py                # App + CORS
@@ -179,11 +217,14 @@ Algebrow/
 │
 ├── frontend/                  # React + Vite + TypeScript + KaTeX
 │   └── src/
-│       ├── components/        # EntradaExpressao, ResultadoPrincipal, PassoAPasso, Historico
+│       ├── components/        # EntradaExpressao, ResultadoPrincipal, PassoAPasso, Historico, Manual
 │       ├── hooks/             # useCalcular (abort+timeout), useKatex, useHistorico
 │       └── services/api.ts    # Cliente HTTP com timeout e cancelamento
 │
-├── tests/                     # 137 testes
+├── docs/
+│   └── MANUAL_LATEX.md        # Manual completo de entrada LaTeX
+│
+├── tests/                     # 585 testes
 │   ├── TEST_basic.py          # 52 testes — aritmética com strings
 │   ├── TEST_numbers.py        # 20 testes — tipos numéricos e simplificação
 │   ├── TEST_expression.py     # 31 testes — operações entre tipos
@@ -470,7 +511,7 @@ Algebrow/
 
 | Métrica | Valor |
 |---------|-------|
-| Testes | 549 passando |
+| Testes | 585 passando |
 | Tempo de testes | ~11s |
 | Commits | 40+ |
 | Módulos do engine | 50+ arquivos Python |

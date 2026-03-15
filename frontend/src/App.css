@@ -311,3 +311,185 @@
 .historico-item:hover {
   background: var(--code-bg, #f4f3ec);
 }
+
+/* ============================
+   Manual LaTeX
+   ============================ */
+
+.manual-container {
+  margin-bottom: 1rem;
+}
+
+.btn-manual {
+  width: 100%;
+  padding: 0.6rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border: 2px dashed var(--accent, #aa3bff);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--accent, #aa3bff);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.btn-manual:hover {
+  background: var(--accent, #aa3bff);
+  color: #fff;
+}
+
+.manual-painel {
+  margin-top: 0.75rem;
+  padding: 1.5rem;
+  border-radius: 12px;
+  background: var(--code-bg, #f4f3ec);
+  border: 1px solid var(--border, #e5e4e7);
+}
+
+.manual-cabecalho h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.3rem;
+}
+
+.manual-cabecalho p {
+  margin: 0 0 1rem;
+  opacity: 0.7;
+  font-size: 0.9rem;
+}
+
+.manual-sintaxe {
+  margin-bottom: 1.25rem;
+}
+
+.manual-sintaxe h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+}
+
+.manual-tabela {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.manual-tabela th,
+.manual-tabela td {
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border, #e5e4e7);
+}
+
+.manual-tabela th {
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.7;
+}
+
+.manual-tabela code {
+  background: rgba(170, 59, 255, 0.08);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.manual-dica {
+  margin: 1rem 0;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  background: rgba(170, 59, 255, 0.06);
+  border-left: 3px solid var(--accent, #aa3bff);
+  font-size: 0.85rem;
+}
+
+.manual-dica code {
+  background: rgba(170, 59, 255, 0.1);
+  padding: 0.1rem 0.3rem;
+  border-radius: 3px;
+}
+
+.manual-categorias {
+  margin-top: 1.25rem;
+}
+
+.manual-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+}
+
+.manual-nav-btn {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  border: 1px solid var(--border, #e5e4e7);
+  border-radius: 6px;
+  background: var(--bg, #fff);
+  color: var(--text, #6b6375);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.manual-nav-btn:hover {
+  border-color: var(--accent, #aa3bff);
+  color: var(--accent, #aa3bff);
+}
+
+.manual-nav-btn.ativo {
+  background: var(--accent, #aa3bff);
+  border-color: var(--accent, #aa3bff);
+  color: #fff;
+}
+
+.manual-cat-descricao {
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+.manual-exemplos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 0.5rem;
+}
+
+.manual-exemplo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.75rem;
+  border: 1px solid var(--border, #e5e4e7);
+  border-radius: 8px;
+  background: var(--bg, #fff);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.manual-exemplo:hover {
+  border-color: var(--accent, #aa3bff);
+  box-shadow: 0 2px 8px rgba(170, 59, 255, 0.12);
+}
+
+.exemplo-codigo {
+  font-size: 0.78rem;
+  opacity: 0.5;
+  font-family: var(--mono, monospace);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.exemplo-preview {
+  font-size: 1.15rem;
+  min-height: 1.8rem;
+  display: flex;
+  align-items: center;
+}
+
+.exemplo-descricao {
+  font-size: 0.8rem;
+  color: var(--text, #6b6375);
+}
