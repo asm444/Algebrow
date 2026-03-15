@@ -307,42 +307,34 @@ class Solver:
             )
 
     def _resolver_expressao_simbolica(self, operacao, entrada_original, historico):
-        """Resolve expressão que contém operações de cálculo misturadas com aritmética.
+        """Resolve expressão composta com operações de cálculo + aritmética.
 
-        Ex: INTEGRAL(x^2, x) - x^3/3 → resolve a integral, substitui, simplifica.
+        Ex: INTEGRAL(x^2+y, x) - x^3/3 → resolve integral → monta AST → simplifica → xy + C
         """
-        import re
+        from engine.parser_simbolico import parsear_simbolico
+        from engine.calculo.derivada import simplificar_no, simplificar_com_cancelamento
+        from engine.calculo.arvore import NoExpressao, num, var, op as ast_op
 
         texto = operacao['expressao']
 
         historico.adicionar(Passo(
             nivel=1,
-            descricao='Expressão simbólica composta — resolver cada operação',
+            descricao='Expressão simbólica composta — resolver operações e simplificar',
             latex_antes=entrada_original,
             regra='expressao_simbolica',
         ))
 
-        # Resolver cada INTEGRAL/DERIVAR/LIMITE embutido, substituindo pelo resultado LaTeX
-        def _resolver_sub(match):
-            sub_texto = match.group(0)
-            try:
-                sub_op = detectar(sub_texto)
-                if sub_op['tipo'] != 'basico':
-                    sub_result = self._resolver_operacao(sub_op, sub_texto, historico)
-                    return sub_result.latex_resultado or sub_texto
-            except Exception:
-                pass
-            return sub_texto
-
-        # Padrão para encontrar OPERACAO(...) com parênteses balanceados
+        # Passo 1: Encontrar e resolver cada INTEGRAL/DERIVAR/LIMITE → NoExpressao
+        # Substituir no texto por placeholders, guardar os NoExpressao
+        resultados_ast = {}
+        placeholder_id = 0
         resultado_texto = texto
-        for op_name in ('INTEGRAL', 'DERIVAR', 'LIMITE', 'LIMITE_LATERAL'):
+
+        for op_name in ('INTEGRAL', 'DERIVAR', 'LIMITE_LATERAL', 'LIMITE'):
             while op_name + '(' in resultado_texto:
-                # Encontrar início
                 start = resultado_texto.find(op_name + '(')
                 if start == -1:
                     break
-                # Encontrar fim (parênteses balanceados)
                 depth = 0
                 j = start + len(op_name)
                 while j < len(resultado_texto):
@@ -354,18 +346,110 @@ class Solver:
                             break
                     j += 1
                 sub_expr = resultado_texto[start:j+1]
-                # Resolver sub-expressão
+
                 try:
                     sub_op = detectar(sub_expr)
                     sub_result = self._resolver_operacao(sub_op, sub_expr, historico)
-                    sub_latex = sub_result.latex_resultado or sub_expr
-                    resultado_texto = resultado_texto[:start] + sub_latex + resultado_texto[j+1:]
+                    # Guardar o NoExpressao do resultado
+                    if sub_result.resultado is not None:
+                        # Remover o +C da integral para simplificação
+                        ast_resultado = sub_result.resultado
+                        if (ast_resultado.tipo == 'operacao' and ast_resultado.valor == '+'
+                                and ast_resultado.filhos[1].tipo == 'variavel'
+                                and ast_resultado.filhos[1].valor == 'C'):
+                            ast_sem_c = ast_resultado.filhos[0]
+                            tem_c = True
+                        else:
+                            ast_sem_c = ast_resultado
+                            tem_c = False
+                        ph = f'__PH{placeholder_id}__'
+                        resultados_ast[ph] = (ast_sem_c, tem_c)
+                        resultado_texto = resultado_texto[:start] + ph + resultado_texto[j+1:]
+                        placeholder_id += 1
+                    else:
+                        # Sem AST, usar LaTeX como string
+                        sub_latex = sub_result.latex_resultado or sub_expr
+                        resultado_texto = resultado_texto[:start] + sub_latex + resultado_texto[j+1:]
                 except Exception:
-                    break  # Evitar loop infinito
+                    break
+
+        # Passo 2: Se temos placeholders com AST, parsear o restante e combinar
+        if resultados_ast:
+            try:
+                # Substituir placeholders por variáveis temporárias para parsear
+                texto_para_parse = resultado_texto
+                mapa_ph_var = {}
+                for ph in resultados_ast:
+                    var_temp = f'P{ph.strip("_").replace("PH", "")}'
+                    # Usar um nome que o parser aceita como variável
+                    var_temp_nome = chr(ord('A') + int(ph.strip('_').replace('PH', '')))
+                    texto_para_parse = texto_para_parse.replace(ph, var_temp_nome)
+                    mapa_ph_var[var_temp_nome] = ph
+
+                # Parsear a expressão com variáveis temporárias
+                # Adicionar as letras usadas como variáveis permitidas temporariamente
+                from engine.parser_simbolico import VARIAVEIS_PERMITIDAS
+                vars_originais = VARIAVEIS_PERMITIDAS.copy()
+                for v in mapa_ph_var:
+                    VARIAVEIS_PERMITIDAS.add(v.lower())
+
+                try:
+                    arvore = parsear_simbolico(texto_para_parse.lower())
+                finally:
+                    VARIAVEIS_PERMITIDAS.clear()
+                    VARIAVEIS_PERMITIDAS.update(vars_originais)
+
+                # Substituir as variáveis temporárias pelos NoExpressao reais
+                def _substituir_placeholders(no):
+                    if no.tipo == 'variavel' and no.valor.upper() in mapa_ph_var:
+                        ph = mapa_ph_var[no.valor.upper()]
+                        return resultados_ast[ph][0]
+                    if no.tipo in ('numero', 'variavel'):
+                        return no
+                    novos_filhos = [_substituir_placeholders(f) for f in no.filhos]
+                    return NoExpressao(no.tipo, no.valor, novos_filhos)
+
+                arvore_completa = _substituir_placeholders(arvore)
+
+                # Passo 3: Simplificar com cancelamento de termos
+                simplificado = simplificar_com_cancelamento(arvore_completa)
+                simplificado = simplificar_no(simplificado)
+
+                # Adicionar +C se alguma integral tinha
+                tem_c_global = any(tc for _, tc in resultados_ast.values())
+                if tem_c_global:
+                    simplificado = ast_op('+', simplificado, var('C'))
+
+                latex_resultado = simplificado.representacao_latex()
+
+                historico.adicionar(Passo(
+                    nivel=0,
+                    descricao='Resultado simplificado',
+                    latex_antes=entrada_original,
+                    latex_depois=latex_resultado,
+                    regra='resultado',
+                ))
+
+                rc = ResultadoCalculo(
+                    entrada=entrada_original, resultado=simplificado,
+                    historico=historico,
+                    latex_entrada=entrada_original, valor_numerico='',
+                )
+                return rc
+
+            except Exception:
+                pass  # Fallback para método string abaixo
+
+        # Fallback: substituição por string (sem simplificação)
+        for ph, (ast_no, tem_c) in resultados_ast.items():
+            latex = ast_no.representacao_latex()
+            if tem_c:
+                latex += ' + C'
+            resultado_texto = resultado_texto.replace(ph, latex)
 
         historico.adicionar(Passo(
             nivel=0,
-            descricao='Resultado da expressão simbólica',
+            descricao='Resultado (sem simplificação)',
             latex_antes=entrada_original,
             latex_depois=resultado_texto,
             regra='resultado',

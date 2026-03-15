@@ -13,7 +13,7 @@ def _eh_numero(no: NoExpressao, valor: str = None) -> bool:
 
 
 def simplificar_no(no: NoExpressao) -> NoExpressao:
-    """Simplifica uma arvore: 0+x->x, 1*x->x, 0*x->0, etc."""
+    """Simplifica uma arvore: 0+x->x, 1*x->x, 0*x->0, cancelamento de termos, etc."""
     if no.tipo in ('numero', 'variavel'):
         return no
 
@@ -26,62 +26,143 @@ def simplificar_no(no: NoExpressao) -> NoExpressao:
         dir_ = simplificar_no(no.filhos[1])
 
         if no.valor == '+':
-            # 0 + x -> x
             if _eh_numero(esq, '0'):
                 return dir_
-            # x + 0 -> x
             if _eh_numero(dir_, '0'):
                 return esq
-            # ambos numeros -> calcular
             if _eh_numero(esq) and _eh_numero(dir_):
                 return num(str(float(esq.valor) + float(dir_.valor)))
 
         if no.valor == '-':
-            # x - 0 -> x
             if _eh_numero(dir_, '0'):
                 return esq
             if _eh_numero(esq) and _eh_numero(dir_):
                 return num(str(float(esq.valor) - float(dir_.valor)))
+            # a - a -> 0 (comparacao estrutural)
+            if esq == dir_:
+                return num('0')
 
         if no.valor == '*':
-            # 0 * x -> 0
             if _eh_numero(esq, '0'):
                 return num('0')
-            # x * 0 -> 0
             if _eh_numero(dir_, '0'):
                 return num('0')
-            # 1 * x -> x
             if _eh_numero(esq, '1'):
                 return dir_
-            # x * 1 -> x
             if _eh_numero(dir_, '1'):
                 return esq
-            # ambos numeros -> calcular
             if _eh_numero(esq) and _eh_numero(dir_):
                 return num(str(float(esq.valor) * float(dir_.valor)))
 
         if no.valor == '/':
-            # 0 / x -> 0
             if _eh_numero(esq, '0'):
                 return num('0')
-            # x / 1 -> x
             if _eh_numero(dir_, '1'):
                 return esq
 
         if no.valor == '^':
-            # x^0 -> 1
             if _eh_numero(dir_, '0'):
                 return num('1')
-            # x^1 -> x
             if _eh_numero(dir_, '1'):
                 return esq
-            # 0^n -> 0 (n > 0)
             if _eh_numero(esq, '0'):
                 return num('0')
 
         return op(no.valor, esq, dir_)
 
     return no
+
+
+def simplificar_com_cancelamento(no: NoExpressao) -> NoExpressao:
+    """Simplificacao avancada: coleta termos, cancela iguais, reconstroi.
+
+    Resolve casos como x^3/3 + xy + C - x^3/3 -> xy + C.
+    """
+    termos = _coletar_termos_soma(no)
+    termos = _cancelar_termos(termos)
+
+    if not termos:
+        return num('0')
+
+    # Reconstruir a arvore
+    resultado = termos[0]
+    for t in termos[1:]:
+        resultado = op('+', resultado, t)
+
+    return simplificar_no(resultado)
+
+
+def _coletar_termos_soma(no: NoExpressao) -> list:
+    """Flatten a+b-c em [a, b, -1*c]."""
+    if no.tipo == 'operacao' and no.valor == '+':
+        return _coletar_termos_soma(no.filhos[0]) + _coletar_termos_soma(no.filhos[1])
+    if no.tipo == 'operacao' and no.valor == '-':
+        termos_dir = _coletar_termos_soma(no.filhos[1])
+        termos_dir_neg = [_negar_termo(t) for t in termos_dir]
+        return _coletar_termos_soma(no.filhos[0]) + termos_dir_neg
+    return [no]
+
+
+def _negar_termo(no: NoExpressao) -> NoExpressao:
+    """Retorna -1 * no."""
+    if _eh_numero(no):
+        val = float(no.valor)
+        return num(str(-val))
+    if (no.tipo == 'operacao' and no.valor == '*'
+            and _eh_numero(no.filhos[0])):
+        novo_coef = str(-float(no.filhos[0].valor))
+        return op('*', num(novo_coef), no.filhos[1])
+    return op('*', num('-1'), no)
+
+
+def _assinatura_numerica(no: NoExpressao) -> tuple:
+    """Avalia o no em varios pontos para gerar uma assinatura numerica."""
+    import math
+    pontos = [
+        {'x': 1.1, 'y': 0.7, 'z': 0.3, 'a': 0.5, 'b': 0.9, 'C': 0, 't': 0.4},
+        {'x': 2.3, 'y': 1.1, 'z': 0.8, 'a': 1.2, 'b': 0.4, 'C': 0, 't': 0.7},
+        {'x': 0.5, 'y': 2.1, 'z': 1.5, 'a': 0.3, 'b': 1.7, 'C': 0, 't': 1.1},
+    ]
+    valores = []
+    for p in pontos:
+        try:
+            v = no.avaliar(p)
+            if math.isfinite(v):
+                valores.append(round(v, 8))
+            else:
+                return None
+        except (ValueError, ZeroDivisionError, OverflowError):
+            return None
+    return tuple(valores)
+
+
+def _cancelar_termos(termos: list) -> list:
+    """Cancela termos que somam zero (assinatura numerica oposta)."""
+    if len(termos) <= 1:
+        return termos
+
+    # Computar assinaturas
+    assinaturas = []
+    for t in termos:
+        sig = _assinatura_numerica(t)
+        assinaturas.append(sig)
+
+    # Encontrar pares que se cancelam (sig_a + sig_b ≈ 0)
+    usados = set()
+    for i in range(len(termos)):
+        if i in usados or assinaturas[i] is None:
+            continue
+        for j in range(i + 1, len(termos)):
+            if j in usados or assinaturas[j] is None:
+                continue
+            # Verificar se a soma das assinaturas eh ~0
+            soma = tuple(a + b for a, b in zip(assinaturas[i], assinaturas[j]))
+            if all(abs(s) < 1e-6 for s in soma):
+                usados.add(i)
+                usados.add(j)
+                break
+
+    return [t for idx, t in enumerate(termos) if idx not in usados]
 
 
 def derivar(no: NoExpressao, variavel: str = 'x', historico: Historico = None) -> NoExpressao:
