@@ -35,8 +35,18 @@ def _extrair_grupo(texto: str, pos: int) -> tuple[str, int]:
                 profundidade -= 1
             i += 1
         return texto[inicio:i - 1], i
-    else:
-        return texto[pos], pos + 1
+
+    # Se começa com \, extrair o comando inteiro como grupo (ex: \infty, \pi)
+    if texto[pos] == '\\':
+        i = pos + 1
+        if i < len(texto) and texto[i].isalpha():
+            while i < len(texto) and texto[i].isalpha():
+                i += 1
+            return texto[pos:i], i
+        return texto[pos:pos+2] if pos + 1 < len(texto) else '\\', i
+
+    # Caso padrão: próximo caractere
+    return texto[pos], pos + 1
 
 
 def _extrair_grupo_opcional(texto: str, pos: int) -> tuple[str | None, int]:
@@ -416,7 +426,7 @@ def _processar_comando(texto: str, pos: int) -> tuple[str, int]:
     # --- Constantes ---
     if comando == 'pi':
         return 'pi', i
-    if comando == 'infty':
+    if comando in ('infty', 'infin', 'infinity'):
         return 'inf', i
 
     # --- Integral: \int, \int_a^b ---

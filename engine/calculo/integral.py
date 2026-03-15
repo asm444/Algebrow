@@ -416,14 +416,11 @@ def integral_impropria(no: NoExpressao, variavel: str, a: str, b: str,
             regra='Integral impropria',
         ))
 
-    # Aproximacao numerica com somas de Riemann crescentes
-    limites_teste = [10, 100, 1000, 10000]
+    # Aproximacao numerica com limites crescentes e pontos proporcionais
+    limites_teste = [5, 10, 20, 50, 100]
     resultados = []
 
     for L in limites_teste:
-        lim_inf = -L if a in ('inf', '-inf', '+inf') and a.startswith('-') else (float(a) if a not in ('inf', '-inf', '+inf') else None)
-        lim_sup = L if b in ('inf', '+inf') else (float(b) if b not in ('-inf',) else -L)
-
         if a == '-inf':
             lim_inf = -L
         elif a == 'inf' or a == '+inf':
@@ -438,15 +435,20 @@ def integral_impropria(no: NoExpressao, variavel: str, a: str, b: str,
         else:
             lim_sup = float(b)
 
-        # Simpson composto
-        n = 1000
+        # Simpson composto com pontos proporcionais ao intervalo
+        # Mínimo 2000 pontos, máximo 10000 — garante h pequeno
+        n = min(10000, max(2000, int((lim_sup - lim_inf) * 100)))
+        if n % 2 != 0:
+            n += 1
         h = (lim_sup - lim_inf) / n
         soma = 0
+        sucesso = True
         try:
             for i in range(n + 1):
                 xi = lim_inf + i * h
                 fi = no.avaliar({variavel: xi})
                 if not math.isfinite(fi):
+                    sucesso = False
                     break
                 if i == 0 or i == n:
                     soma += fi
@@ -454,26 +456,39 @@ def integral_impropria(no: NoExpressao, variavel: str, a: str, b: str,
                     soma += 4 * fi
                 else:
                     soma += 2 * fi
-            else:
-                resultados.append(soma * h / 3)
-                continue
         except (ValueError, ZeroDivisionError, OverflowError):
-            pass
-        resultados.append(None)
+            sucesso = False
 
-    # Verificar convergencia
+        if sucesso:
+            resultados.append(soma * h / 3)
+        else:
+            resultados.append(None)
+
+    # Verificar convergencia: procurar sequência estável
     validos = [r for r in resultados if r is not None]
     if len(validos) < 2:
         return 'divergente'
 
-    # Se os ultimos valores convergem
-    if abs(validos[-1] - validos[-2]) < 1e-4:
-        val = validos[-1]
-        if abs(val) > 1e15:
-            return 'inf' if val > 0 else '-inf'
-        inteiro = round(val)
-        if abs(val - inteiro) < 1e-6:
-            return str(inteiro)
-        return str(round(val, 6))
+    # Verificar se os últimos valores convergem (diferença relativa < 1e-4)
+    for i in range(len(validos) - 1, 0, -1):
+        diff = abs(validos[i] - validos[i-1])
+        ref = max(abs(validos[i]), 1e-10)
+        if diff / ref < 1e-4:
+            val = validos[i]
+            if abs(val) > 1e15:
+                return 'inf' if val > 0 else '-inf'
+            inteiro = round(val)
+            if abs(val - inteiro) < 1e-6:
+                return str(inteiro)
+            return str(round(val, 6))
+
+    # Último recurso: se todos os valores são próximos entre si
+    if len(validos) >= 3:
+        media = sum(validos) / len(validos)
+        if all(abs(v - media) / max(abs(media), 1e-10) < 1e-3 for v in validos):
+            inteiro = round(media)
+            if abs(media - inteiro) < 1e-6:
+                return str(inteiro)
+            return str(round(media, 6))
 
     return 'divergente'
