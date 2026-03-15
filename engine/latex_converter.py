@@ -157,21 +157,24 @@ def _processar_latex(texto: str) -> str:
 def _extrair_integrando(texto: str, pos: int) -> tuple[str, str, int]:
     """Extrai o integrando e a variável de integração de uma integral.
 
-    Procura padrão: <integrando> \\, d<var> ou <integrando> d<var>
-    Retorna (integrando, variavel, nova_posicao).
+    Procura o PRIMEIRO padrão d<var> que indica o diferencial.
+    Tudo antes é o integrando, tudo depois é texto que continua sendo processado.
+    Retorna (integrando, variavel, nova_posicao_apos_dx).
     """
     import re as _re
 
-    # Procurar padrão "d<var>" no texto a partir de pos
     restante = texto[pos:]
 
-    # Tentar encontrar \, dx ou dx ou d{x} no final
-    # Padrões: "\\, dx", "\\,dx", " dx", "\\; dx", "d{x}"
+    # Procurar o primeiro dx, \,dx, \;dx, d{x} — NÃO ancorado no fim ($)
+    # Ordem: mais específico primeiro
     patterns = [
-        r'(.+?)\\[,;]\s*d([a-z])\s*$',   # \, dx ou \; dx
-        r'(.+?)\\[,;]\s*d\{([a-z])\}\s*$',  # \, d{x}
-        r'(.+?)\s+d([a-z])\s*$',           # espaço dx
-        r'(.+?)d([a-z])\s*$',              # dx colado
+        r'(.+?)\\[,;]\s*d\{([a-z])\}',   # \, d{x} ou \; d{x}
+        r'(.+?)\\[,;]\s*d([a-z])',         # \, dx ou \; dx
+        r'(.+?)\s+d\{([a-z])\}',          # espaço d{x}
+        r'(.+?)\s+d([a-z])(?![a-z])',      # espaço dx (não seguido de letra)
+        r'(.+?)d\{([a-z])\}',             # d{x} colado
+        r'(.+?[^a-z])d([a-z])(?![a-z])',   # dx colado (precedido de não-letra)
+        r'(.+?)d([a-z])$',                # dx no final absoluto
     ]
 
     for pattern in patterns:

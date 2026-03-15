@@ -277,6 +277,10 @@ class Solver:
                     latex_entrada=r['latex_entrada'], valor_numerico='',
                 )
 
+            # --- Expressão simbólica composta (ex: INTEGRAL(...) - x^3/3) ---
+            if tipo == 'expressao_simbolica':
+                return self._resolver_expressao_simbolica(operacao, entrada_original, historico)
+
             # Operação reconhecida mas ferramenta ainda não implementada
             historico_fallback = Historico(verbosidade=self.verbosidade)
             historico_fallback.adicionar(Passo(
@@ -301,6 +305,79 @@ class Solver:
                 historico=historico,
                 latex_entrada=entrada_original, valor_numerico='',
             )
+
+    def _resolver_expressao_simbolica(self, operacao, entrada_original, historico):
+        """Resolve expressão que contém operações de cálculo misturadas com aritmética.
+
+        Ex: INTEGRAL(x^2, x) - x^3/3 → resolve a integral, substitui, simplifica.
+        """
+        import re
+
+        texto = operacao['expressao']
+
+        historico.adicionar(Passo(
+            nivel=1,
+            descricao='Expressão simbólica composta — resolver cada operação',
+            latex_antes=entrada_original,
+            regra='expressao_simbolica',
+        ))
+
+        # Resolver cada INTEGRAL/DERIVAR/LIMITE embutido, substituindo pelo resultado LaTeX
+        def _resolver_sub(match):
+            sub_texto = match.group(0)
+            try:
+                sub_op = detectar(sub_texto)
+                if sub_op['tipo'] != 'basico':
+                    sub_result = self._resolver_operacao(sub_op, sub_texto, historico)
+                    return sub_result.latex_resultado or sub_texto
+            except Exception:
+                pass
+            return sub_texto
+
+        # Padrão para encontrar OPERACAO(...) com parênteses balanceados
+        resultado_texto = texto
+        for op_name in ('INTEGRAL', 'DERIVAR', 'LIMITE', 'LIMITE_LATERAL'):
+            while op_name + '(' in resultado_texto:
+                # Encontrar início
+                start = resultado_texto.find(op_name + '(')
+                if start == -1:
+                    break
+                # Encontrar fim (parênteses balanceados)
+                depth = 0
+                j = start + len(op_name)
+                while j < len(resultado_texto):
+                    if resultado_texto[j] == '(':
+                        depth += 1
+                    elif resultado_texto[j] == ')':
+                        depth -= 1
+                        if depth == 0:
+                            break
+                    j += 1
+                sub_expr = resultado_texto[start:j+1]
+                # Resolver sub-expressão
+                try:
+                    sub_op = detectar(sub_expr)
+                    sub_result = self._resolver_operacao(sub_op, sub_expr, historico)
+                    sub_latex = sub_result.latex_resultado or sub_expr
+                    resultado_texto = resultado_texto[:start] + sub_latex + resultado_texto[j+1:]
+                except Exception:
+                    break  # Evitar loop infinito
+
+        historico.adicionar(Passo(
+            nivel=0,
+            descricao='Resultado da expressão simbólica',
+            latex_antes=entrada_original,
+            latex_depois=resultado_texto,
+            regra='resultado',
+        ))
+
+        rc = ResultadoCalculo(
+            entrada=entrada_original, resultado=None,
+            historico=historico,
+            latex_entrada=entrada_original, valor_numerico='',
+        )
+        rc.latex_resultado = resultado_texto
+        return rc
 
     def _resolver_basico(self, entrada_convertida, entrada_original, historico):
         """Resolve expressão básica (Fases 0-2)."""

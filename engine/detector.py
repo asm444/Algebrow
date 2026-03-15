@@ -267,5 +267,10 @@ def detectar(texto: str) -> dict:
     if m:
         return {'tipo': 'green', 'expressao': m.group(1).strip()}
 
+    # --- Expressão contendo operação de cálculo como sub-expressão ---
+    # Ex: "INTEGRAL(x^2, x) - x^3/3" ou "2 * DERIVAR(x^2, x)"
+    if 'INTEGRAL(' in texto or 'DERIVAR(' in texto or 'LIMITE(' in texto:
+        return {'tipo': 'expressao_simbolica', 'expressao': texto}
+
     # --- Fallback: expressão básica ---
     return {'tipo': 'basico', 'expressao': texto}

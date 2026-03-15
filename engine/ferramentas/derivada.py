@@ -12,7 +12,7 @@ Exemplos de uso:
     >>> print(resultado['latex'])       # regra da cadeia aplicada
 
     >>> resultado = calcular_derivada_ordem("x^4", "x", 2)
-    >>> print(resultado['latex'])       # 12 \cdot {x}^{2}
+    >>> print(resultado['latex'])       # 12 \\cdot {x}^{2}
 
     >>> resultado = calcular_derivada_implicita("x^2 + y^2 - 1", "x", "y")
     >>> print(resultado['latex'])       # dy/dx = -x/y
